@@ -30,3 +30,15 @@ typedef enum cmd_t{
      char m_pwd[200];
 
 }task_t;
+
+typedef struct clint_data{
+
+    //客户端文件描述符
+    int m_peerfd;
+     //ip地址
+    char m_ip[100];
+     //端口    
+    char m_port[20];
+     //工作目录
+    char m_pwd[200];
+}client_t;
