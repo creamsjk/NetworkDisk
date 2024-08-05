@@ -26,5 +26,7 @@ typedef enum cmd_t{
      cmd_type m_cmd;
      //命令附带的参数
      char m_buff[200];
+     //客户端的工作目录
+     char m_pwd[200];
 
 }task_t;
