@@ -85,3 +85,8 @@ int epollDelReadEvent(int epfd, int fd){
 
     return 0;
 }
+
+int executeCommnd(task_t* task){
+    //执行客户端传输过来的指令
+    //TODO
+}

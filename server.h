@@ -59,4 +59,6 @@ int tcp_init(const char* ip, const char* port);
 int epollAddReadEvent(int epfd, int fd);
 int epollDelReadEvent(int epfd, int fd);
 
+int executeCommand(taks_t*);
+
 #endif
