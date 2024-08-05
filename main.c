@@ -65,10 +65,12 @@ int main(int argc, char* argv[]){
                     //添加用户队列
                 }else if(fd == exitPipe[0]){
                     //父进程通知子进程退出
-                    
+                    int exitFlag;
+                    read(exitPipe[0], &exitFlag, sizeof(exitFlag));   
+                    //子线程停止
                 }else {
                     //子进程接收到客户端指令，执行指令
-                    //executeCommnd();
+                    executeCommnd();
                 }
 
             }
