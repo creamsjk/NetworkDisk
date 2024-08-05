@@ -1,4 +1,6 @@
 #include "server.h"
+#include"../log/log.h"
+#include"../thread_cmd/thread_pool.h"
 #define MAXSIZE 256
 
 int exitPipe[2] = { 0 };
@@ -15,6 +17,13 @@ int main(int argc, char* argv[]){
     //从server.conf中读取数据启动服务器
     // ./server server.conf
     ARGS_CHECK(argc, 2);
+
+    //创建日志对象  并初始化  
+     log_t *log = (log_t*)malloc(sizeof(log_t));
+     log_init(log);
+     //需要改变的 日志消息
+     char log_message[1024] = {0};
+
 
     //创建退出管道
     pipe(exitPipe);
@@ -49,6 +58,17 @@ int main(int argc, char* argv[]){
         struct epoll_event events[100] =  { 0 };
         int ready_num;
 
+
+         //创建线程 初始化线程
+          threadpool_t  *pool = (threadpool_t*)malloc(sizeof(threadpool_t));
+          assert(pool);
+          //暂时创建五个线程   后续可以更改成形参
+          threadpoolInit(pool, 5);
+
+
+
+
+
         while(1) {
             ready_num = epoll_wait(epfd, events, 100, -1);
             ERROR_CHECK(ready_num, -1, "epoll_wait");
@@ -60,24 +80,50 @@ int main(int argc, char* argv[]){
                     socklen_t len = sizeof(clientAdd); 
                     memset(&clientAdd, 0, sizeof(clientAdd));
                     int peerfd = accept(listenfd, (struct sockaddr*)&clientAdd, &len);
-                    //将新建立连接加入监听
+
+                    //验证客户端发过来用户密码(用户密码放在一个结构体之中)
+                    //失败直接从continue
+                 
+
+           
+
+
+
+                    //将新建立连接加入监听   成功
                     epollAddReadEvent(epfd, peerfd);
-                    //添加用户队列
+                    //写入日志  message字符串 进行组装  
+                    // write_log(log, message);
+
+                    //添加用户队列  用数组 实现吧 -1 代表就是可以使用的数组
+                    
+
                 }else if(fd == exitPipe[0]){
                     //父进程通知子进程退出
                     int exitFlag;
                     read(exitPipe[0], &exitFlag, sizeof(exitFlag));   
+                        
                     //子线程停止
+                     threadpoolStop(pool);
+                     threadpoolDestory(pool);
+                     
+                    
                 }else {
-                    //子进程接收到客户端指令，执行指令
-                    executeCommnd();
+                    //子进程接收到客户端指令，执行指令  
+                    //将收到的命令 以及 内容封装 成一个结构体放入阻塞队列中
+                    //工作线程 会处理 
+                    
+                    //通过接受到的命令 以及内容  来初始化task 放入阻塞队列
+                    task_t task;
+                    
+                    taskEnque(pool->m_que, task);
+                    //executeCommnd();
                 }
 
             }
 
         }
-
-    default:
+    }
+    if(pid != 0){
         //父进程
         close(exitPipe[0]);
         //注册信号处理函数
@@ -85,6 +131,7 @@ int main(int argc, char* argv[]){
         wait(NULL);
         close(exitPipe[1]);
         exit(0);
+
     }
 
     return 0;
