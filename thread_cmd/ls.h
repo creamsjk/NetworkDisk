@@ -12,7 +12,7 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<string.h>
-#include"type.h"
+#include"../type.h"
 #include <sys/types.h>
 #include <dirent.h>
 #include<assert.h>

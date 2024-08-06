@@ -6,9 +6,9 @@
  ************************************************************************/
 
 #ifndef  QUEUE_THREAD_H
-#define  QUEUE_THREAD_h
+#define  QUEUE_THREAD_H
 
-#include"type.h"
+#include"../type.h"
 #include<pthread.h>
 #include<semaphore.h>
 

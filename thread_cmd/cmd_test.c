@@ -12,11 +12,11 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<string.h>
-#include"pwd.c"
-#include"ls.c"
-#include"cd.c"
-#include "mkdir.c"
-#include"rmdir.c"
+#include"pwd.h"
+#include"ls.h"
+#include"cd.h"
+#include "mkdir.h"
+#include"rmdir.h"
 
 int main(void){
 

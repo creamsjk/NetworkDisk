@@ -12,7 +12,7 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<string.h>
-#include"type.h"
+#include"../type.h"
 
 char *cmd_cd(task_t result, char *root){
     
