@@ -41,4 +41,12 @@ typedef struct clint_data{
     char m_port[20];
      //工作目录
     char m_pwd[200];
+    //指向下一个用户
+    struct client_data* pNext;
 }client_t;
+
+//在线用户队列
+typedef struct client_list {
+    client_t* pFront, pRear;
+    int clientSize;
+} client_List;
