@@ -5,6 +5,9 @@
     > Created Time: 2024年08月03日 星期六 16时47分52秒
  ************************************************************************/
 
+#ifndef  __TYPE_H
+#define  __TYPE_H
+
 typedef enum cmd_t{
     CMD_TYPE_PWD = 1,
     CMD_TYPE_LS,
@@ -18,6 +21,7 @@ typedef enum cmd_t{
 
 
 }cmd_type;
+
  typedef struct task_s{
 
      //文件描述符
@@ -55,3 +59,5 @@ typedef struct client_cmd{
 
 }client_cmd_t;
 
+
+#endif

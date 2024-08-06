@@ -16,11 +16,11 @@
 #include"thread_pool.h"
 #include<assert.h>
 #include<pthread.h>
-#include"cd.c"
-#include"ls.c"
-#include"pwd.c"
-#include"mkdir.c"
-#include"rmdir.c"
+#include"cd.h"
+#include"ls.h"
+#include"pwd.h"
+#include"mkdir.h"
+#include"rmdir.h"
 
 char * root = "/home/sunrise/桌面/wangdao";
 
