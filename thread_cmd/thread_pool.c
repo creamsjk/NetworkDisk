@@ -33,42 +33,55 @@ void process(task_t task){
             char *result = cmd_pwd(task, root);
             
             //发送给客户端
+            //先只写这一个 等待解决其他问题 在写后面其他命令细节
+            int len = strlen(result);
+            result[len] = '\0';
+            send(task.m_peerfd, result, len + 1, 0);
             
-
             free(result);
+            break;
 
         }
     case CMD_TYPE_LS:
         {
             //后边和客户端处理
             char * result = cmd_ls(task, root);
+
+            break;
         }
     case CMD_TYPE_CD:
         {
             char *h = cmd_cd(task, root);  
 
             free(h);
+            break;
         }
     case CMD_TYPE_MKDIR:
         {
 
             int ret  = cmd_mkdir(task, root);
+
+            break;
         }
     case CMD_TYPE_RMDIR:
         {
               int ret  = cmd_rmdir(task, root);
+
+              break;
         }
     case CMD_TYPE_PUTS:
         {
 
+            break;
+
         }
     case CMD_TYPE_GETS:
         {
-
+             break;
         }
     case CMD_TYPE_QUIT:
         {
-
+           break;
         }
     default:
         break;
@@ -83,6 +96,7 @@ void *work(void* arg){
 
     while(1){
        task_t  tmp;
+       //从阻塞队列拿出来以一个
        int ret = taskDeque(pool->m_que,&tmp);
        //   printf("ddpeerfd  %d  \n",tmp.m_peerfd);
        assert(ret == 0);
