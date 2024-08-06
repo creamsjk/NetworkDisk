@@ -149,7 +149,7 @@ int userLoginCheck2(const char* encrypt, const char* username){
 
 //按(length, cmdType, content)类型接收客户端数据
 //返回指令类型，buf为指令参数
-cmd_type recvCommand(int peerfd, char* buf) {
+int recvCommand(int peerfd, char* buf) {
     //先获取数据长度
     int length;
     recv(peerfd, &length, sizeof(length), MSG_WAITALL);
@@ -163,7 +163,7 @@ cmd_type recvCommand(int peerfd, char* buf) {
     }
     recv(peerfd, buf, length, MSG_WAITALL);
 
-    return cmd;
+    return (int)cmd;
 }
 
 //生成随机字符串（salt值）

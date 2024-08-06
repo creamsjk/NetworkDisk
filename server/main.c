@@ -92,19 +92,19 @@ int main(int argc, char* argv[]){
                     // write_log(log, message);
                     //写入客户端ip、端口、以及连接时间
                     char message[MAXSIZE] = { 0 };
-                    sprintf(message, "ip:%s port:%d", inet_ntoa(clientAdd.sin_addr), ntoh(clientAdd.sin_port));
+                    sprintf(message, "client:ip:%s port:%d", inet_ntoa(clientAdd.sin_addr), ntohs(clientAdd.sin_port));
                     write_log(log, message);
                     //添加用户队列  用数组 实现吧 -1 代表就是可以使用的数组
-                    client_t pClient = (client_t*)calloc(1, sizeof(client_t));
+                    client_t* pClient = (client_t*)calloc(1, sizeof(client_t));
                     pClient->m_peerfd = peerfd;
-                    pClient->m_ip = inet_ntoa(clientAdd.sin_addr);
-                    pClient->m_port = atoi(ntoh(clientAdd.sin_port));
+                    strcpy(pClient->m_ip, inet_ntoa(clientAdd.sin_addr));
+                    sprintf(pClient->m_port, "%d", ntohl(clientAdd.sin_port));
                     strcpy(pClient->m_pwd, "/");
 
                     if(clientList.clientSize == 0) {
                         clientList.pFront = clientList.pRear = pClient;
                     }else {
-                        clientList.pRear.pNext = pClient;
+                        clientList.pRear->pNext = pClient;
                         clientList.pRear = pClient;
                     }
                     clientList.clientSize++;
@@ -117,7 +117,6 @@ int main(int argc, char* argv[]){
                     //子线程停止
                      threadpoolStop(pool);
                      threadpoolDestory(pool);
-                     
                     
                 }else {
                     //子进程接收到客户端指令，执行指令  
@@ -128,7 +127,7 @@ int main(int argc, char* argv[]){
                     task_t task;
                     memset(&task, 0, sizeof(task));
                     task.m_peerfd = fd;
-                    task.m_cmd = recvCommand(fd, task.m_buff);
+                    task.m_cmd = (cmd_type)recvCommand(fd, task.m_buff);
                     strcpy(task.m_pwd, "/");
                     taskEnque(pool->m_que, task);
                     //executeCommnd();

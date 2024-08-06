@@ -4,6 +4,8 @@
     > Mail: 1102490208@qq.com 
     > Created Time: 2024年08月03日 星期六 16时47分52秒
  ************************************************************************/
+#ifndef __TYPE__H
+#define __TYPE__H
 
 typedef enum cmd_t{
     CMD_TYPE_PWD = 1,
@@ -18,6 +20,7 @@ typedef enum cmd_t{
 
 
 }cmd_type;
+
  typedef struct task_s{
 
      //文件描述符
@@ -47,6 +50,7 @@ typedef struct clint_data{
 
 //在线用户队列
 typedef struct client_list {
-    client_t* pFront, pRear;
+    client_t *pFront, *pRear;
     int clientSize;
 } client_List;
+#endif
