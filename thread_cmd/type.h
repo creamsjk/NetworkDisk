@@ -33,4 +33,20 @@ typedef enum cmd_t{
 
 }task_t;
 
+
+
+
+
+//客户端发送的数据
+typedef struct client_cmd{
+
+    //命令
+    cmd_type m_cmd;
+    //命令附带的参数
+    char m_buff[200];
+
+
+}client_cmd_t;
+
+
 #endif
