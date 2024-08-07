@@ -1,5 +1,4 @@
 #include "my_mysql.h"
-#include "user.h"
 
 MYSQL* connect_db()
 {
@@ -192,15 +191,15 @@ int update_user_pwd(MYSQL* pconn, char* username, char* new_pwd)
 /*
  * 查找文件是否已经在服务器上
  * 参数：pconn 指向MYSQL结构体的指针
- *       filename 需要查找的文件名
+ *       file_hash 确定文件唯一的密文
  * 返回值：文件名存在返回1
  *         文件名不存在返回0
  *         失败返回-1
  * */
-int find_file_is_exist(MYSQL* pconn, char* filename)
+int find_file_is_exist(MYSQL* pconn, char* file_hash)
 {
     char sql[256];
-    sprintf(sql, "select filename from GlobalFile where filename = '%s';", filename);
+    sprintf(sql, "select filename from GlobalFile where file_hash = '%s';", file_hash);
     
     if(execute_query(pconn, sql) == -1)
         return -1;
@@ -234,6 +233,90 @@ char** get_user_file(MYSQL* pconn, char* username)
     char sql[256];
     sprintf(sql, "select filename from File where username = '%s';", username);
     
+    if(execute_query(pconn, sql) == -1)
+        return NULL;
+
+    MYSQL_RES* pres = mysql_store_result(pconn);
+    if(pres)
+    {
+        int rows = mysql_num_rows(pres);
+        int cols = mysql_num_fields(pres);
+        int row_count = 0;
+
+        char** result = (char**)malloc(sizeof(char*) * (rows + 1));
+        MYSQL_ROW row = NULL;
+        while((row = mysql_fetch_row(pres)) != NULL)
+        {
+            result[row_count] = (char*)malloc(sizeof(char) * (strlen(row[0]) + 1));
+            strcpy(result[row_count++], row[0]);
+        }
+        result[row_count] = NULL;
+
+        mysql_free_result(pres);
+        return result;
+    }
+    else
+    {
+        perror(mysql_error(pconn));
+        return NULL;
+    }
+}
+
+/*
+ * 获取路径下的用户文件
+ * 参数：pconn 指向MYSQL结构体的指针
+ *       username 要查找的用户名
+ *       path 查找路径
+ * 返回值：获取成功返回文件名的字符串数组
+ *         失败或者没有记录返回NULL
+ * */
+char** get_user_file_by_path(MYSQL* pconn, char* username, char* path)
+{
+    char sql[256];
+    sprintf(sql, "select filename from File where username = '%s' and filepath = '%s' and filetype = 'f';", username, path);
+
+    if(execute_query(pconn, sql) == -1)
+        return NULL;
+
+    MYSQL_RES* pres = mysql_store_result(pconn);
+    if(pres)
+    {
+        int rows = mysql_num_rows(pres);
+        int cols = mysql_num_fields(pres);
+        int row_count = 0;
+
+        char** result = (char**)malloc(sizeof(char*) * (rows + 1));
+        MYSQL_ROW row = NULL;
+        while((row = mysql_fetch_row(pres)) != NULL)
+        {
+            result[row_count] = (char*)malloc(sizeof(char) * (strlen(row[0]) + 1));
+            strcpy(result[row_count++], row[0]);
+        }
+        result[row_count] = NULL;
+
+        mysql_free_result(pres);
+        return result;
+    }
+    else
+    {
+        perror(mysql_error(pconn));
+        return NULL;
+    }
+}
+
+/*
+ * 获取路径下的用户文件
+ * 参数：pconn 指向MYSQL结构体的指针
+ *       username 要查找的用户名
+ *       path 查找路径
+ * 返回值：获取成功返回文件名的字符串数组
+ *         失败或者没有记录返回NULL
+ * */
+char** get_user_dir_by_path(MYSQL* pconn, char* username, char* path)
+{
+    char sql[256];
+    sprintf(sql, "select filename from File where username = '%s' and filepath = '%s' and filetype = 'd';", username, path);
+
     if(execute_query(pconn, sql) == -1)
         return NULL;
 
@@ -380,10 +463,10 @@ char* get_filepath(MYSQL* pconn, char* filename, char* username)
  * 返回值：添加成功返回0
  *         失败返回-1
  * */
-int insert_file(MYSQL* pconn, char* filename, char* filetype, char* username, char* filepath)
+int insert_file(MYSQL* pconn, char* filename, char* filetype, char* username, char* file_hash, char* filepath)
 {
     char sql[256];
-    sprintf(sql, "insert into File(filename, filetype, username, filepath) values('%s', '%s', '%s', '%s');", filename, filetype, username, filepath);
+    sprintf(sql, "insert into File(filename, filetype, username, file_hash, filepath) values('%s', '%s', '%s', '%s', '%s');", filename, filetype, username, file_hash, filepath);
 
     if(execute_query(pconn, sql) == -1)
         return -1;
