@@ -17,10 +17,6 @@
 #include<sys/fcntl.h>
 #include<unistd.h>
 
-typedef struct {
-    int len;
-    char buff[1020];   
-}message_t;
 
 
 int cmd_gets(task_t result, char *path_name){

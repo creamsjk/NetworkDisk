@@ -14,6 +14,7 @@
 #include<fcntl.h>
 #include<arpa/inet.h>
 #include"gets.h"
+#include"puts.h"
 
 //最大监听数量
 #define LISTENSOCKET 5
@@ -77,8 +78,11 @@ int main(int argc, char* argv[]){
 
         task_t task;
         task.m_peerfd =  clnt_sock;
-        char * path_name = "./qwe.txt";
-        cmd_gets(task, path_name);
+        //char * path_name = "./qwe.txt";
+        //cmd_gets(task, path_name);
+        char *path_name = "./aa";
+        cmd_puts(task, path_name);
+        
 
 
 
