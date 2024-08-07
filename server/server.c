@@ -148,7 +148,7 @@ int userLoginCheck2(const char* encrypt, const char* username){
 }
 
 //按(length, cmdType, content)类型接收客户端数据
-//返回值为客户端发送的指令本身
+//返回指令类型，buf为指令参数
 int recvCommand(int peerfd, char* buf) {
     //先获取数据长度
     int length;
@@ -159,11 +159,33 @@ int recvCommand(int peerfd, char* buf) {
     recv(peerfd, &cmd, sizeof(cmd), MSG_WAITALL);
     
     if(cmd = CMD_TYPE_NOTCMD){
-        return NULL;
+        return -1;
     }
     recv(peerfd, buf, length, MSG_WAITALL);
 
-    return 0;
+    return (int)cmd;
 }
 
-
+//生成随机字符串（salt值）
+//n为生成salt值位数
+char* generateSalt(int n){
+    int flag, i;
+    char* salt;
+    srand((unsigned) time(NULL ));
+    if ((salt= (char*) malloc(n)) == NULL ) {
+        fprintf(stderr, "malloc failed\n");
+        return NULL ;
+    }
+    for (i = 0; i < n+1; i++) {
+        flag = rand() % 3;
+        switch (flag) {
+        case 0: salt[i] = 'A' + rand() % 26; break;
+        case 1: salt[i] = 'a' + rand() % 26; break;
+        case 2: salt[i] = '0' + rand() % 10; break;
+        default: salt[i] = 'x'; break;
+        }
+    } 
+    //生成随机字符串末尾加上'\0'
+    salt[n] = '\0';
+    return salt;
+}
