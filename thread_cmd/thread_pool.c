@@ -21,6 +21,8 @@
 #include"pwd.h"
 #include"mkdir.h"
 #include"rmdir.h"
+#include"gets.h"
+#include"puts.h"
 
 char * root = "/home/sunrise/桌面/wangdao";
 

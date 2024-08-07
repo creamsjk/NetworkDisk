@@ -40,7 +40,7 @@ int cmd_gets(task_t result, char *path_name){
 
     //发送全部4 + buff 的内容
     int ret = send(fd,&srcMessage,4+srcMessage.len,0);
-    printf("send firse %d \n",4+srcMessage.len);
+    // printf("send firse %d \n",4+srcMessage.len);
 
     struct stat st;
     fstat(rfd,&st);
@@ -48,7 +48,21 @@ int cmd_gets(task_t result, char *path_name){
     int total = st.st_size;
     int send_bit = 0;
     int len = send(fd,&total,sizeof(total),0);
-    printf("send total success  \n");
+    //printf("send total success  \n");
+
+
+    //接受文件偏移量 并且偏移到指定位置  从读的文件描述符中偏移 而不是写中
+    int file_len = 0;
+    recv(fd, &file_len, sizeof(file_len), MSG_WAITALL);
+    int cur_len = lseek(rfd, file_len, SEEK_SET);
+
+    //   printf("file_len == %d  cur_len == %d\n", file_len, cur_len);
+  
+    //while(1);
+
+ 
+
+
 
     while(send_bit < total){
         memset(&srcMessage,0,sizeof(srcMessage));

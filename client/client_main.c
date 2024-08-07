@@ -42,10 +42,10 @@ int main(void){
     char log_in_message[16] = {0};
 
     //md5 加密
-     unsigned char md[16] = {0};
-       char result[32] = {0};
+    unsigned char md[16] = {0};
+    char result[32] = {0};
       
-       char password[20]= {0};
+    char password[20]= {0};
 
 
     while(strcmp(log_in_message, "ok") != 0){
@@ -116,24 +116,8 @@ int main(void){
             ret = read(STDIN_FILENO, buff, sizeof(buff));
 
             //处理标准输入分割成 cmd_type  和  m_buff
-          //  char send_cmd;
-          //  printf("buf == %s \n",buff);
-          //  int i = 0;
-          //  if(buff[0] == ' '){
-
-          //      while(buff[i++] != ' ')
-          //          ;
-          //  }
-          //  send_cmd = buff[i];
-
-          //  while(buff[i++] != ' ')
-          //         ;
-
-          //  char *send_buff =  buff + i ;
-        
-
-          //  int tmp  = (int)send_cmd - 48;
-          //  cmd.m_cmd = (cmd_type)tmp;
+            //  int tmp  = (int)send_cmd - 48;
+            //  cmd.m_cmd = (cmd_type)tmp;
            char * send_cmd;
                 int i = 0;  
                             

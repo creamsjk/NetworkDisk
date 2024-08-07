@@ -78,10 +78,10 @@ int main(int argc, char* argv[]){
 
         task_t task;
         task.m_peerfd =  clnt_sock;
-        //char * path_name = "./qwe.txt";
-        //cmd_gets(task, path_name);
-        char *path_name = "./aa";
-        cmd_puts(task, path_name);
+        char * path_name = "./qwe.txt";
+        cmd_gets(task, path_name);
+        //char *path_name = "./aa";
+        //cmd_puts(task, path_name);
         
 
 
