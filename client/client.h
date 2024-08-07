@@ -18,13 +18,14 @@
 #include<unistd.h>
 
 
-
+/*
 typedef  struct user_s{
 
    char user[6];
    char password[33];
 
 }user_t;
+*/
 
 int transfer_cmd(char *cmd){
     

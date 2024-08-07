@@ -3,6 +3,8 @@
     > Author: sunrie
     > Mail: 1102490208@qq.com 
     > Created Time: 2024年08月06日 星期二 09时07分21秒
+
+    gcc client_main.c -o client  -lcrypto
  ************************************************************************/
 
 #include<stdio.h>
@@ -76,8 +78,9 @@ int main(void){
      client_cmd_t cmd;
      cmd.m_cmd = CMD_TYPE_PWD;
      memset(&cmd.m_buff, '\0', sizeof(cmd.m_buff));
+     
 
-     char buff[1024];
+     char buff[10240];
      send(clientfd, &cmd, sizeof(cmd), 0);
      memset(buff, '\0', sizeof(buff));
       ret = recv(clientfd, buff, sizeof(buff), 0);
@@ -139,10 +142,13 @@ int main(void){
                char *send_buff = buff  + i;
                 int tmp  = transfer_cmd(send_cmd);
                // printf("tmp == %d \n",tmp);
+               // printf("send_buff =%s \n",send_buff);
+               
             
 
 
             //进行命令组装发送  不带参数的就先发ok
+            int send_flag = 0;
             switch(tmp){
                 
             case 1 :
@@ -164,7 +170,9 @@ int main(void){
                 {
                     cmd.m_cmd = CMD_TYPE_CD;
                     memset(cmd.m_buff, '\0', sizeof(cmd.m_buff));
-                    strcpy(cmd.m_buff, "ok");
+                    strcpy(cmd.m_buff, send_buff);
+                    // printf("cd send =%s \n",cmd.m_buff);
+
 
                     break;
                 }
@@ -172,7 +180,7 @@ int main(void){
                 {
                     cmd.m_cmd = CMD_TYPE_MKDIR;
                     memset(cmd.m_buff, '\0', sizeof(cmd.m_buff));
-                    strcpy(cmd.m_buff, "ok");
+                    strcpy(cmd.m_buff, send_buff);
 
                     break;
                 }
@@ -202,12 +210,16 @@ int main(void){
                 }
              default:
                  printf(" send  error  cmd \n");
+                 send_flag = 1;
             }
            // strcpy(cmd.m_buff, send_buff);
           
             //此时 已经组装好命令 发送命令 
-          
+          if(send_flag == 0)
             send(clientfd, &cmd, sizeof(cmd), 0);
+          else
+            printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+             
 
 
                       
@@ -229,11 +241,13 @@ int main(void){
                     cmd.m_cmd = CMD_TYPE_PWD;         
 
                     //printf("%s @ %s : ", client.user, pwd);
-                    printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+                 //   printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
                     ret = recv(clientfd, buff, sizeof(buff), 0);
                     
                     printf("%s \n",buff);
+
+                    printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
                     break;
                 }
@@ -241,11 +255,13 @@ int main(void){
                 {
                     cmd.m_cmd = CMD_TYPE_LS;
                     //printf("%s @ %s : ", client.user, pwd);
-                    printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+                   //  printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
                     ret = recv(clientfd, buff, sizeof(buff), 0);
                     
                     printf("%s \n",buff);
+
+                    printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
                     break;
                 }
@@ -254,9 +270,22 @@ int main(void){
                     //cd 更改客户端命令
                     cmd.m_cmd = CMD_TYPE_CD;
                     recv(clientfd, buff, sizeof(buff), 0);
-                    strcpy(pwd,buff);
+
+                    printf(" %s \n",buff);
+
+                    if(strcmp(buff, "error") == 0){
+                       printf("that is not file !! \n");
+                       //while(1);
+                    }else{
+
+                        strcpy(pwd,buff);
+                        int len = strlen(pwd);
+                        pwd[len]='\0';
+                    }
 
                    // printf("%s @ %s : ", client.user, pwd);
+                   
+                    //printf("pwd_cd == %s \n", pwd);
                     printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
                     
 
@@ -267,8 +296,12 @@ int main(void){
                     cmd.m_cmd = CMD_TYPE_MKDIR;
                     recv(clientfd, buff, sizeof(buff), 0);
 
+                    if(strcmp(buff, "ok") == 0)
+                        printf("mkdir ok \n");
+                    else 
+                        printf("mkdir error \n");
                    // printf("%s @ %s : ", client.user, pwd);
-                    //printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+                    printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
                      
                     break;
                 }
@@ -305,7 +338,7 @@ int main(void){
 
            // recv(clientfd, buff, sizeof(buff), 0);
            // printf("%s @ %s : ", client.user, pwd);
-            printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+           //      printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
             fflush(stdout);
               

@@ -1,7 +1,7 @@
 #ifndef __SERVER_H
 #define __SERVER_H 
 
-#include "type.h"
+#include "../type.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,7 +65,7 @@ int executeCommand(task_t*);
 
 //用户登录校验
 char* userLoginCheck1(const char* username);
-int  userLoginCheck2(const char* encrypt);
+int  userLoginCheck2(const char* encrypt, const char* username);
 
 int recvCommand(int peerfd, char* buf);
 

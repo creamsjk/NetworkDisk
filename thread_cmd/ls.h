@@ -21,13 +21,24 @@
 char * cmd_ls(task_t result, char *root){
      
     
+   // printf("ls_pwd = %s \n",result.m_pwd);
     char *s = (char *)malloc(sizeof(char) * 200);
-    strcat(s,root);
+    memset(s,'\0', sizeof(s));
+    //strcat(s,root);
     strcat(s,result.m_pwd);
+    
+    char * message = (char *)malloc(sizeof(char) * 10240);
+    memset(message, '\0', 10240);
+     printf("dir == %s  m_pwd == %s \n", s, result.m_pwd);
+
    
     //打开目录流
     DIR *pdir = opendir(s);
-    assert(pdir != NULL);
+    //assert(pdir != NULL);
+    if(pdir == NULL){
+      strcpy(message, "no this DIR !!!");
+      return message;
+    }
     long loc = telldir(pdir);
     struct dirent* pdirent;
 
@@ -41,11 +52,16 @@ char * cmd_ls(task_t result, char *root){
             break;
         }else if( pdirent->d_type == DT_DIR){
 
-            printf("\033[0m\033[1;34m%s\033[0m\n",pdirent->d_name);
+            //printf("\033[0m\033[1;34m%s\033[0m\n",pdirent->d_name);
+            strcat(message, pdirent->d_name);
+            strcat(message, " ");
 
 
         }else{
-            printf("%s \n",pdirent->d_name);
+            //printf("%s \n",pdirent->d_name);
+            strcat(message, pdirent->d_name);
+            strcat(message, " ");
+            
 
         }
 
@@ -55,9 +71,9 @@ char * cmd_ls(task_t result, char *root){
     closedir(pdir);
 
 
+//初步完成  全部地下文件一起 发送的 
 
-
-    return s;
+    return message;
 }
 
 #endif

@@ -24,14 +24,16 @@
 #include"gets.h"
 #include"puts.h"
 
-char * root = "/home/sunrise/桌面/wangdao";
+char * root = "/home/sunrise/桌面/wangdao/NetworkDisk";
 
 void process(task_t task){
 
     // printf("%ld执行任务  over\n",pthread_self());
+   // printf("process_pwd == %s \n", task.m_pwd);
     switch(task.m_cmd){
     case CMD_TYPE_PWD:
         {
+            //pwd 成功实现 先暂时不要free
             char *result = cmd_pwd(task, root);
             
             //发送给客户端
@@ -40,28 +42,47 @@ void process(task_t task){
             result[len] = '\0';
             send(task.m_peerfd, result, len + 1, 0);
             
-            free(result);
+            printf("pwd buff is  %s \n",result);
+            //while(1);
+            //free(result);
             break;
 
         }
     case CMD_TYPE_LS:
         {
             //后边和客户端处理
+            printf("work_ls_pwd == %s \n",task.m_pwd);
             char * result = cmd_ls(task, root);
+            int len = strlen(result);
+            result[len] = '\0';
+            send(task.m_peerfd, result, len + 1, 0);
+
+            printf("pwd buff is  %s \n",result);
+
 
             break;
         }
     case CMD_TYPE_CD:
         {
-            char *h = cmd_cd(task, root);  
+            char *result = cmd_cd(task, root);  
+           // printf("cd pwd  == %s \n", task.m_pwd);
 
-            free(h);
+            int len = strlen(result);
+            result[len] = '\0';
+            send(task.m_peerfd, result, len + 1, 0);
+
+
+            //free(h);
             break;
         }
     case CMD_TYPE_MKDIR:
         {
 
-            int ret  = cmd_mkdir(task, root);
+             int ret  = cmd_mkdir(task, root);
+             if(ret == 0)
+                send(task.m_peerfd, "ok", 3, 0);
+             else
+                 send(task.m_peerfd, "error", 6, 0);
 
             break;
         }
@@ -100,10 +121,11 @@ void *work(void* arg){
        task_t  tmp;
        //从阻塞队列拿出来以一个
        int ret = taskDeque(pool->m_que,&tmp);
-       //   printf("ddpeerfd  %d  \n",tmp.m_peerfd);
+        printf(" this peerfd  %d  and pwd is %s \n", tmp.m_peerfd, tmp.m_pwd);
        assert(ret == 0);
         int peerfd = tmp.m_peerfd;
        if(peerfd > 0){
+         process(tmp);
 
        }else{
            break;

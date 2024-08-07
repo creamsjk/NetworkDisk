@@ -35,17 +35,26 @@ typedef enum cmd_t{
 
 }task_t;
 
-typedef struct clint_data{
+//客户端信息
+typedef struct client_data{
 
     //客户端文件描述符
     int m_peerfd;
      //ip地址
     char m_ip[100];
-     //端口    
+     //端口
     char m_port[20];
      //工作目录
     char m_pwd[200];
+    //指向下一个用户
+    struct client_data* pNext;
 }client_t;
+
+//在线用户队列
+typedef struct client_list {
+    client_t *pFront, *pRear;
+    int clientSize;
+} client_List;
 
 
 //客户端发送的数据
@@ -65,6 +74,16 @@ typedef struct {
     char buff[1020];
 
 }message_t;
+
+
+//客户端发送的账号密码结构 
+typedef  struct user_s{
+
+   char user[6];
+   char password[33];
+
+}user_t;
+
 
 
 #endif

@@ -17,9 +17,17 @@
 
 char * cmd_pwd(task_t result, char *root){
 
+    int ret = chdir(result.m_pwd);
+    if(ret == -1){
+        char s[20];
+        strcpy(s, "pwd failed !!");
+        return s;
+    }
     char * s = getcwd(NULL,0);
-    int len  =  strspn(s,root);
-    s += len-1;
+   // printf("cmd_pwd s ==%s   ",s);
+   // int len  =  strspn(s,root);
+    int len = strspn(root, s);
+    s += len;
 
     return s;
 

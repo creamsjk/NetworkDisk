@@ -91,7 +91,10 @@ int taskEnque(list_queue_t *que, const task_t result){
     assert(node);
     node->pNext = NULL;
     node->m_task.m_peerfd = result.m_peerfd;
+    node->m_task.m_cmd = result.m_cmd;
     strncpy(node->m_task.m_buff,result.m_buff,sizeof(node->m_task.m_buff));
+    strncpy(node->m_task.m_pwd, result.m_pwd, sizeof(result.m_pwd));
+    
     node->m_task.m_cmd = result.m_cmd;
 
 

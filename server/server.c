@@ -1,5 +1,5 @@
 #include "server.h"
-#include "type.h"
+#include "../type.h"
 #define MAXSIZE 256
 
 //ip地址为点分十进制表示
@@ -47,6 +47,11 @@ int tcp_init(const char* ip, const char* port){
     int listenfd = socket(AF_INET, SOCK_STREAM, 0);
     ERROR_CHECK(listenfd, -1, "socket");
 
+    //设置端口复用
+    int on = 1;
+    int ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
+
     //绑定ip地址
     struct sockaddr_in serverAdd;
     socklen_t len = sizeof(serverAdd);
@@ -54,7 +59,7 @@ int tcp_init(const char* ip, const char* port){
     serverAdd.sin_family = AF_INET;
     serverAdd.sin_port = htons(atoi(port));
     serverAdd.sin_addr.s_addr = inet_addr(ip);
-    int ret = bind(listenfd, (struct sockaddr*)&serverAdd, len);
+    ret = bind(listenfd, (struct sockaddr*)&serverAdd, len);
     ERROR_CHECK(ret, -1, "bind");
 
     //启动监听,最大支持11个连接
@@ -69,7 +74,8 @@ int epollAddReadEvent(int epfd, int fd){
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
-    ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+   // ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     int ret = epoll_ctl(epfd, EPOLL_CTL_ADD, fd ,&ev);
     ERROR_CHECK(ret, -1, "epoll_ctl");
 
@@ -80,7 +86,8 @@ int epollDelReadEvent(int epfd, int fd){
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
-    ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    //ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     int ret = epoll_ctl(epfd, EPOLL_CTL_DEL, fd ,&ev);
     ERROR_CHECK(ret, -1, "epoll_ctl");
 
