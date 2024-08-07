@@ -59,5 +59,12 @@ typedef struct client_cmd{
 
 }client_cmd_t;
 
+//进行puts 和gets 传输的结构体
+typedef struct {
+    int len;
+    char buff[1020];
+
+}message_t;
+
 
 #endif
