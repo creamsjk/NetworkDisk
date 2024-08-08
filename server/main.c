@@ -1,11 +1,11 @@
 #include "server.h"
 #include"../log/log.h"
 #include"../thread_cmd/thread_pool.h"
+#include"../my_mysql/my_mysql.h"
 #define MAXSIZE 1024
 
-//编译命令  gcc main.c server.c  ../thread_cmd/thread_pool.c  ../thread_cmd/queue_thread.c
-//-o server -pthread -w
-
+//编译命令  
+//gcc main.c server.c  ../thread_cmd/thread_pool.c  ../thread_cmd/queue_thread.c ../my_mysql/my_mysql.c   -o server -pthread -w -lmysqlclient
 
 
 
@@ -37,6 +37,12 @@ int main(int argc, char* argv[]){
      //需要改变的 日志消息
      char log_message[1024] = {0};
   
+     //数据库连接
+    MYSQL *pconn = connect_db(); 
+
+     
+
+     //连接队列
      clientList.clientSize = 0;
      clientList.pFront = NULL;
      clientList.pRear = NULL;
@@ -109,16 +115,58 @@ int main(int argc, char* argv[]){
                     //接受账号密码  并返回
                     
                     printf("进来一个客户端 \n");
-                    
+
+                   
                     user_t user;
                     memset(&user, '\0', sizeof(user));
+
+                    int select_login_register = 0;
+                      
+                    recv(peerfd, &select_login_register, sizeof(select_login_register), 0);
+
+                    if(select_login_register != 2 &&  select_login_register != 1){
+                        continue;
+                    }else if (select_login_register == 2){
+                        //执行注册
+                        ret = recv(peerfd, &user, sizeof(user), 0);
+                        ret = insert_user(pconn, user.user,  user.password, "/home/sunrise/桌面/wangdao/NetworkDisk/home");
+                        if(ret == -1){
+                          send(peerfd, "error", 6, 0);
+                          continue;
+                        }
+                        else 
+                          send(peerfd, "ok", 3, 0);  
+
+                    }
+            
+
+
+
+
+
+
+                    
                     //while(1);
                     ret = recv(peerfd, &user, sizeof(user), 0);
                     //printf("ret == %d \n",ret);
 
-                    printf("user =%s   password =%s  \n",user.user, user.password);
+                    printf("user =%s|   password =%s|  \n",user.user, user.password);
+                    if(find_user_is_exist(pconn, user.user) != 1){
 
-                    send(peerfd, "ok", 3, 0);
+                        send(peerfd, "error", 6, 0);
+                        continue;
+
+                    }
+                    char * usr_pasword =  get_user_password(pconn, user.user);
+                    printf("user_password %s \n ",usr_pasword);
+                    if(strcmp(usr_pasword, user.password) == 0)   
+                       send(peerfd, "ok", 3, 0);
+                    else{
+                        send(peerfd, "error", 6, 0);
+                        continue;
+
+                    }
+
                     //while(1);
                          
                      
@@ -168,6 +216,9 @@ int main(int argc, char* argv[]){
                     //子线程停止
                      threadpoolStop(pool);
                      threadpoolDestory(pool);
+
+                     //关闭数据库连接
+                     close_db(pconn);
                 }else if(events[i].events & EPOLLRDHUP){
                      //事件发生 就是客户端关闭 从epoll中将他删除
                      //当然 还要从队列中删除 这个文件描述符  目前没有写

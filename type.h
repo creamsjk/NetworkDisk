@@ -85,6 +85,7 @@ typedef  struct user_s{
 
    char user[6];
    char password[33];
+   char pwd[128];
 
 }user_t;
 

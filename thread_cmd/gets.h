@@ -15,6 +15,7 @@
 #include<sys/socket.h>
 #include<sys/stat.h>
 #include<sys/fcntl.h>
+#include<sys/mman.h>
 #include<unistd.h>
 
 
@@ -68,27 +69,37 @@ int cmd_gets(task_t result, char *path_name){
     //while(1);
 
     printf("开始写文件\n"); 
+    total -= cur_len;
 
 
+    //if(total < 100000000){
 
-    while(send_bit < total){
-        memset(&srcMessage,0,sizeof(srcMessage));
 
-        //从文件中读一些
-        len = read(rfd,srcMessage.buff,sizeof(srcMessage.buff));
-       // printf("len == %d \n",len);
-        srcMessage.len = len;
-        if(srcMessage.len <=0 )
-            break;
-       // printf("srcMessage.len  =  %d  %s \n",srcMessage.len,srcMessage.buff);
+        while(send_bit < total){
+            memset(&srcMessage,0,sizeof(srcMessage));
 
-        //分两次发送 第一次发送的是这次发送的文件大小 第二次是真正的文件
-        ret = send(fd,&srcMessage.len,sizeof(srcMessage.len),0);
+            //从文件中读一些
+            len = read(rfd,srcMessage.buff,sizeof(srcMessage.buff));
+            // printf("len == %d \n",len);
+            srcMessage.len = len;
+            if(srcMessage.len <=0 )
+                break;
+            // printf("srcMessage.len  =  %d  %s \n",srcMessage.len,srcMessage.buff);
 
-        ret = send(fd,srcMessage.buff,srcMessage.len,0);
+            //分两次发送 第一次发送的是这次发送的文件大小 第二次是真正的文件
+            ret = send(fd,&srcMessage.len,sizeof(srcMessage.len),0);
 
-        send_bit += ret;
-    }
+            ret = send(fd,srcMessage.buff,srcMessage.len,0);
+
+            send_bit += ret;
+        }
+    //}else{
+        //零拷贝技术
+
+    //    char * pMap =(char*) mmap(NULL, total, PROT_READ | PROT_WRITE, MAP_SHARED, rfd, 0);
+    //    send(fd, pMap, total, 0);
+
+   // }
     printf("发送完成\n");
 
     return 0;

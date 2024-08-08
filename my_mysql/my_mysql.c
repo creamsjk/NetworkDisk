@@ -9,9 +9,9 @@ MYSQL* connect_db()
         return NULL;
     }
     
-    const char* host = "localhost";
+    const char* host = "118.25.193.224";
     const char* user = "root";
-    const char* passwd = "123456";
+    const char* passwd = "104962dec5f28b2e";
     const char* db = "Cloudisk";
 
     if(mysql_real_connect(pconn, host, user, passwd, db, 0, NULL, 0) == NULL)

@@ -42,18 +42,76 @@ int main(void){
     memset(&client, '\0',sizeof(client));
     int recv_len = -1;
     char log_in_message[16] = {0};
+    char log_register[16] = { 0 };
 
     //md5 加密
     unsigned char md[16] = {0};
     char result[32] = {0};
       
     char password[20]= {0};
+    int select_login_register = 0;
+    
 
+    printf("Please select login  or  register \n");
+    printf("Enter 1 is login \n");
+    printf("Enter 2 is register \n");
+    scanf("%d", &select_login_register);
+
+    //printf("select_login_register ==%d| \n", select_login_register);
+    send(clientfd, &select_login_register, sizeof(int), 0);
+
+    if(select_login_register != 1 &&  select_login_register != 2){
+        
+              printf("\033[0m\033[1;31m bye!! \033[0m\n");
+              return 1;
+    }
+
+
+    //注册
+    if(select_login_register == 2){
+
+        printf("Please inter your register  user: ");
+        scanf("%s",client.user);
+
+        printf("Please inter your register  password: ");
+        scanf("%s",password);
+
+
+        if(strcmp(client.user, "quit") == 0 || strcmp(client.password, "quit") == 0){
+            
+              printf("\033[0m\033[1;31m bye!! \033[0m\n");
+              return 1;
+         
+        }
+
+        strcpy(result, password);
+        md5_to((unsigned char *)password, sizeof(password), md, result);
+
+        strcpy(client.password, result);
+
+
+        send(clientfd, &client, sizeof(client), 0);
+
+        recv_len = recv(clientfd,  log_register, sizeof(log_register), 0);
+        
+        if(strcmp(log_register, "error") == 0){
+                 
+              printf("\033[0m\033[1;31m user is failed bye!! \033[0m\n");
+              return 1;
+            
+     
+        }
+        printf("register is success \n");
+
+    }
+
+   //while(1); 
 
     while(strcmp(log_in_message, "ok") != 0){
 
         if(recv_len >= 0 ){
-            printf("user or password  failed  \n");
+
+            printf("\033[0m\033[1;31m user or password  failed  \033[0m\n");
         }
 
         printf("Please inter your user: ");
@@ -61,6 +119,14 @@ int main(void){
 
         printf("Please inter your password: ");
         scanf("%s",password);
+
+
+        if(strcmp(client.user, "quit") == 0 || strcmp(client.password, "quit") == 0){
+            
+              printf("\033[0m\033[1;31m bye!! \033[0m\n");
+              return 1;
+         
+        }
 
         strcpy(result, password);
         md5_to((unsigned char *)password, sizeof(password), md, result);
@@ -72,6 +138,9 @@ int main(void){
 
         recv_len = recv(clientfd,  log_in_message, sizeof(log_in_message), 0);
     }
+
+    printf("\033[0m\033[1;31m Enter Server  \033[0m\n");
+
 
      //通过之后发个pwd  用户来看自己位置
      char pwd[200] = {0};
