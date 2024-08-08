@@ -60,6 +60,8 @@ int tcp_init(const char* ip, const char* port);
 //封装epoll函数
 int epollAddReadEvent(int epfd, int fd);
 int epollDelReadEvent(int epfd, int fd);
+int epollAddReadEventServer(int epfd, int fd);
+int epollMod(int epfd, int fd);
 
 int executeCommand(task_t*);
 

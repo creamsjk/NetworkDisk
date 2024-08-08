@@ -74,13 +74,41 @@ int epollAddReadEvent(int epfd, int fd){
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
-   // ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    //ev.events = EPOLLIN |EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
     ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     int ret = epoll_ctl(epfd, EPOLL_CTL_ADD, fd ,&ev);
     ERROR_CHECK(ret, -1, "epoll_ctl");
 
     return 0;
 }
+
+int epollAddReadEventServer(int epfd, int fd){
+    struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.data.fd = fd;
+   // ev.events = EPOLLIN |EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+    int ret = epoll_ctl(epfd, EPOLL_CTL_ADD, fd ,&ev);
+    ERROR_CHECK(ret, -1, "epoll_ctl");
+
+    return 0;
+}
+
+int epollMod(int epfd, int fd){
+
+    struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.data.fd = fd;
+    ev.events = EPOLLIN |EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    // ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+    int ret = epoll_ctl(epfd, EPOLL_CTL_MOD, fd ,&ev);
+    ERROR_CHECK(ret, -1, "epoll_mod");
+
+
+
+}
+
+
 
 int epollDelReadEvent(int epfd, int fd){
     struct epoll_event ev;

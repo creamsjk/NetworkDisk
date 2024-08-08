@@ -86,10 +86,16 @@ int cmd_gets(int peerfd, char *path_name){
 
     int len = 0;
     int ret = recv(clientfd,&len,sizeof(len),0);
-    printf("len = %d \n",len);
+    //printf("len = %d  name=%s \n", len, path_name);
+    if(len == -1){
+        printf("文件不存在或错误!!!\n");
+        return 1;
+    }
 
     ret = recv(clientfd,name,len,0);
-    int wfd = open(name,O_RDWR | O_CREAT, 0664);
+    //int wfd = open(name,O_RDWR | O_CREAT, 0664);
+   int wfd = open(path_name,O_RDWR | O_CREAT, 0664);
+ 
     if(wfd == -1){
         printf("open failed \n");
         exit(1);
@@ -100,7 +106,7 @@ int cmd_gets(int peerfd, char *path_name){
      int file_len = lseek(wfd, 0, SEEK_END);
      send(clientfd, &file_len, sizeof(file_len), 0);
      int cur_len =  lseek(wfd, 0, SEEK_CUR);
-     printf("file_len == %d  cur_len == %d   \n", file_len, cur_len);
+    // printf("file_len == %d  cur_len == %d   \n", file_len, cur_len);
 
      //  while(1);
 
@@ -110,7 +116,11 @@ int cmd_gets(int peerfd, char *path_name){
 
     int total =-1;
     recvn(clientfd,&total,sizeof(total));
-    printf("total = %d \n",total);
+   // printf("total = %d \n",total);
+   if(total == file_len){
+       printf("文件已经传输过了 不再需要传输\n");
+       return 0;
+   }
 
     len = 0;
     int tmp_len=0;
@@ -127,8 +137,8 @@ int cmd_gets(int peerfd, char *path_name){
 
         if(ret <=0 )
             break;
-        //  printf("ret = %d \n",ret);
-        //  printf("buff = %s \n",buff);
+         // printf("ret = %d \n",ret);
+         // printf("buff = %s \n",buff);
 
         write(wfd,buff,tmp_len);
 
@@ -145,9 +155,11 @@ int cmd_gets(int peerfd, char *path_name){
             lastSize = len;
         }
 
+            fflush(stdout);
+
         len += ret;
     }
-    printf("gets 完成 \n");
+    printf("gets 完成                                       \n");
 
     return 0;
 

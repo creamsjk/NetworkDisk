@@ -74,7 +74,8 @@ int main(int argc, char* argv[]){
         int epfd = epoll_create(5);
 
         //监听listenfd
-        epollAddReadEvent(epfd, listenfd);
+        //epollAddReadEvent(epfd, listenfd);
+        epollAddReadEventServer(epfd, listenfd);
         struct epoll_event events[100] =  { 0 };
         int ready_num;
 
@@ -88,6 +89,7 @@ int main(int argc, char* argv[]){
         threadpoolStart(pool);
 
         printf("进入epoll  \n");
+        printf("epfd == %d \n",epfd);
 
         while(1) {
             ready_num = epoll_wait(epfd, events, 100, -1);
@@ -171,11 +173,7 @@ int main(int argc, char* argv[]){
                      //当然 还要从队列中删除 这个文件描述符  目前没有写
                      
                     char message[MAXSIZE] = { 0 };
-                    if(clientList.pFront->pNext != NULL){
-                        printf("clientList 不为NULL \n");
-                    }
 
-                     
                     if(clientList.clientSize == 1){
                         client_t *p = clientList.pFront;
                         clientList.pFront = NULL;
@@ -241,6 +239,8 @@ int main(int argc, char* argv[]){
                     task_t task;
                     memset(&task, 0, sizeof(task));
                     task.m_peerfd = fd;
+                    task.m_epfd = epfd;
+                    printf("task.epfd = %d\n", task.m_epfd);
                     //task.m_cmd = (cmd_type)recvCommand(fd, task.m_buff);
                     task.m_cmd = client_message.m_cmd;
                     strcpy(task.m_buff, client_message.m_buff); 
@@ -253,7 +253,7 @@ int main(int argc, char* argv[]){
                     //加入阻塞队列
                     taskEnque(pool->m_que, task);
 
-                    printf("fd = %d  cmd == %d  m_buff = %s  m_pwd = %s \n", task.m_peerfd, task.m_cmd, task.m_buff, task.m_pwd );
+                    printf("fd = %d  cmd == %d  m_buff = %s  m_pwd = %s  \n", task.m_peerfd, task.m_cmd, task.m_buff, task.m_pwd );
                     printf("成功加入阻塞队列 \n");
                     //executeCommnd();
                 }

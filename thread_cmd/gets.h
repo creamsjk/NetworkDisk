@@ -29,6 +29,8 @@ int cmd_gets(task_t result, char *path_name){
     if(rfd == -1){
 
         printf("openfile is failed \n");
+        int len = -1;
+        send(fd, &len, sizeof(len), 0);
         return 1;
     }
 
@@ -56,6 +58,10 @@ int cmd_gets(task_t result, char *path_name){
     int file_len = 0;
     recv(fd, &file_len, sizeof(file_len), MSG_WAITALL);
     int cur_len = lseek(rfd, file_len, SEEK_SET);
+    if(file_len == total){
+        printf("文件已经传输过 不再需要传输 \n");
+        return 0;
+    }
 
     //   printf("file_len == %d  cur_len == %d\n", file_len, cur_len);
   
@@ -83,6 +89,7 @@ int cmd_gets(task_t result, char *path_name){
 
         send_bit += ret;
     }
+    printf("发送完成\n");
 
     return 0;
 }

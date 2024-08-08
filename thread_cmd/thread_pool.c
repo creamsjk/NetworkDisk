@@ -23,6 +23,7 @@
 #include"rmdir.h"
 #include"gets.h"
 #include"puts.h"
+#include"../server/server.h"
 
 char * root = "/home/sunrise/桌面/wangdao/NetworkDisk";
 
@@ -45,6 +46,10 @@ void process(task_t task){
             printf("pwd buff is  %s \n",result);
             //while(1);
             //free(result);
+            //
+            //epollMod(task.m_epfd, task.m_peerfd);
+                          
+            printf("pwd_epfd == %d \n",task.m_epfd);
             break;
 
         }
@@ -104,6 +109,9 @@ void process(task_t task){
         }
     case CMD_TYPE_GETS:
         {
+            
+            printf("gets join \n");
+            epollDelReadEvent(task.m_epfd, task.m_peerfd);
             char *s = (char *)malloc(sizeof(char) * 200);
             int len = strlen(task.m_buff);
             task.m_buff[len -1] = '\0';
@@ -114,10 +122,11 @@ void process(task_t task){
             strcat(s,task.m_buff);
            
             printf("gets name=%s \n", s);
-            strcpy(s, "/home/sunrise/桌面/wangdao/NetworkDisk/home/abc.txt");
+            //strcpy(s, "/home/sunrise/桌面/wangdao/NetworkDisk/home/abc.txt");
             cmd_gets(task, s);
 
 
+            epollAddReadEvent(task.m_epfd, task.m_peerfd);
 
              break;
         }

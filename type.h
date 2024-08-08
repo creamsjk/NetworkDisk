@@ -26,6 +26,8 @@ typedef enum cmd_t{
 
      //文件描述符
      int m_peerfd;
+     //epfd 调用完gets or puts 需要添加
+     int m_epfd;
      //命令
      cmd_type m_cmd;
      //命令附带的参数

@@ -105,6 +105,9 @@ int main(void){
     FD_SET(clientfd, &rdset);
     fd_set tmpset;
     FD_ZERO(&tmpset);
+
+    int newfd = dup(clientfd);
+
     
 
     //事件循环
@@ -221,14 +224,16 @@ int main(void){
              default:
                  printf(" send  error  cmd \n");
                  send_flag = 1;
+                 printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+
             }
            // strcpy(cmd.m_buff, send_buff);
           
             //此时 已经组装好命令 发送命令 
+            fflush(stdout);
           if(send_flag == 0)
             send(clientfd, &cmd, sizeof(cmd), 0);
-          else
-            printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+           // printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
              
 
 
@@ -340,17 +345,22 @@ int main(void){
             case 7:
                 {
                     cmd.m_cmd = CMD_TYPE_GETS;
+                    //FD_CLR(clientfd, &rdset);
                     char name[200]={ 0 };
                     strcpy(name, cmd.m_buff);
                     int name_len = strlen(name);
                     name[name_len -1] = '\0';
 
                     printf("name =%s \n", name);
-                     char* hh = getcwd(NULL, 0);
-                     printf("this pwd is %s \n",  hh);
-                    //while(1);
-                    cmd_gets(clientfd, name);
+                   // char* hh = getcwd(NULL, 0);
+                    // printf("this pwd is %s \n",  hh);
+                    //strcpy(name,"/home/sunrise/桌面/wangdao/NetworkDisk/client/qwe.txt");
+
+                   // close(clientfd);
+                    cmd_gets(newfd, name);
                     
+                    printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+
                     break;
                 }
             case 8:
