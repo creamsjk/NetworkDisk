@@ -106,12 +106,15 @@ int main(void){
     }
 
    //while(1); 
+   printf("进入输入密码阶段!!\n");
 
     while(strcmp(log_in_message, "ok") != 0){
 
         if(recv_len >= 0 ){
 
             printf("\033[0m\033[1;31m user or password  failed  \033[0m\n");
+            //select_login_register = 1;
+            //send(clientfd, &select_login_register, sizeof(int), 0);
         }
 
         printf("Please inter your user: ");
@@ -439,7 +442,7 @@ int main(void){
                     int name_len = strlen(name);
                     name[name_len -1] = '\0';
 
-                    printf("name =%s \n", name);
+                    printf("put_name =%s \n", name);
                    // char* hh = getcwd(NULL, 0);
                     // printf("this pwd is %s \n",  hh);
                     //strcpy(name,"/home/sunrise/桌面/wangdao/NetworkDisk/client/qwe.txt");

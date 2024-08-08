@@ -17,6 +17,8 @@
 #include<sys/fcntl.h>
 #include<sys/mman.h>
 #include<unistd.h>
+#include<errno.h>
+#include<error.h>
 
 
 
@@ -26,7 +28,7 @@ int cmd_gets(task_t result, char *path_name){
     int fd = result.m_peerfd;
     printf("进入发送！！\n");
 
-    int rfd = open(path_name,O_RDONLY);
+    int rfd = open(path_name,O_RDWR , 0664);
     if(rfd == -1){
 
         printf("openfile is failed \n");
@@ -64,15 +66,17 @@ int cmd_gets(task_t result, char *path_name){
         return 0;
     }
 
-    //   printf("file_len == %d  cur_len == %d\n", file_len, cur_len);
+       printf("file_len == %d  cur_len == %d\n", file_len, cur_len);
   
     //while(1);
 
     printf("开始写文件\n"); 
     total -= cur_len;
 
+    printf("total == %d \n", total);
 
-    //if(total < 100000000){
+
+    if(total < 100000000){
 
 
         while(send_bit < total){
@@ -93,13 +97,17 @@ int cmd_gets(task_t result, char *path_name){
 
             send_bit += ret;
         }
-    //}else{
+    }else{
         //零拷贝技术
+        printf("使用零拷贝技术\n");
+        void * pMap = mmap(NULL, total, PROT_READ | PROT_WRITE, MAP_SHARED, rfd, 0);
 
-    //    char * pMap =(char*) mmap(NULL, total, PROT_READ | PROT_WRITE, MAP_SHARED, rfd, 0);
-    //    send(fd, pMap, total, 0);
+        printf("mmap error: %d-%s,",errno, strerror(errno));
+        ret = send(fd, pMap, total, 0);
+        printf("零拷贝发送 ret = %d \n", ret);
+        munmap(pMap, total);
 
-   // }
+   }
     printf("发送完成\n");
 
     return 0;

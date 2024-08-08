@@ -16,7 +16,12 @@
 #include<sys/stat.h>
 #include<sys/fcntl.h>
 #include<unistd.h>
+#include<sys/mman.h>
+#include<errno.h>
+#include<error.h>
+#include<fcntl.h>
 
+#define SPLICE_F_MORE 0x04
 
 /*
 typedef  struct user_s{
@@ -94,8 +99,9 @@ int cmd_gets(int peerfd, char *path_name){
 
     ret = recv(clientfd,name,len,0);
     //int wfd = open(name,O_RDWR | O_CREAT, 0664);
-   int wfd = open(path_name,O_RDWR | O_CREAT, 0664);
- 
+    int wfd = open(path_name,O_RDWR | O_CREAT, 0664);
+  
+  
     if(wfd == -1){
         printf("open failed \n");
         exit(1);
@@ -106,7 +112,7 @@ int cmd_gets(int peerfd, char *path_name){
      int file_len = lseek(wfd, 0, SEEK_END);
      send(clientfd, &file_len, sizeof(file_len), 0);
      int cur_len =  lseek(wfd, 0, SEEK_CUR);
-    // printf("file_len == %d  cur_len == %d   \n", file_len, cur_len);
+     printf("file_len == %d  cur_len == %d   \n", file_len, cur_len);
 
      //  while(1);
 
@@ -116,7 +122,7 @@ int cmd_gets(int peerfd, char *path_name){
 
     int total =-1;
     recvn(clientfd,&total,sizeof(total));
-   // printf("total = %d \n",total);
+    printf("total = %d \n",total);
    if(total == file_len){
        printf("文件已经传输过了 不再需要传输\n");
        return 0;
@@ -129,35 +135,62 @@ int cmd_gets(int peerfd, char *path_name){
     int bar = total / 100;
     int lastSize = 0;
 
-    while(len < total){
-        memset(buff,0,sizeof(buff));
-        ret = recvn(clientfd,&tmp_len,sizeof(tmp_len));
-        // printf("tmp_len = %d \n",tmp_len);
-        ret = recvn(clientfd,buff,tmp_len);
+    
+    total -= file_len;
+    //100M
+    if(total < 100000000){
 
-        if(ret <=0 )
-            break;
-         // printf("ret = %d \n",ret);
-         // printf("buff = %s \n",buff);
 
-        write(wfd,buff,tmp_len);
+        while(len < total){
+            memset(buff,0,sizeof(buff));
+            ret = recvn(clientfd,&tmp_len,sizeof(tmp_len));
+            // printf("tmp_len = %d \n",tmp_len);
+            ret = recvn(clientfd,buff,tmp_len);
 
-        if(len - lastSize > bar){
-            printf(" %5f%%  ",(double)100 * len / total);
-            int n = len / (bar*10);
-            printf("<= ");
-            for(int i=0;i<n;i++){
-                printf("#");
+            if(ret <=0 )
+                break;
+            // printf("ret = %d \n",ret);
+            // printf("buff = %s \n",buff);
+
+            write(wfd,buff,tmp_len);
+
+            if(len - lastSize > bar){
+                printf(" %5f%%  ",(double)100 * len / total);
+                int n = len / (bar*10);
+                printf("<= ");
+                for(int i=0;i<n;i++){
+                    printf("#");
+                }
+                printf(" \r");
+                //别忘了
+                fflush(stdout);
+                lastSize = len;
             }
-            printf(" \r");
-            //别忘了
+
             fflush(stdout);
-            lastSize = len;
+
+            len += ret;
         }
+    }else{
 
-            fflush(stdout);
+        int pipefd[2];
+        pipe(pipefd);
+        printf("进入splice \n");
 
-        len += ret;
+        ret = 0;
+        while(len < total){
+            ret = splice(clientfd, NULL, pipefd[1], NULL, 4096, SPLICE_F_MORE);
+
+           // printf("ret1 == %d\n",ret);
+            len += ret;
+
+            ret = splice(pipefd[0], NULL, wfd, NULL, ret, SPLICE_F_MORE);
+            //printf("ret2 == %d\n",ret);
+
+        }
+        close(pipefd[1]);
+        close(pipefd[0]);
+  
     }
     printf("gets 完成                                       \n");
 
