@@ -31,30 +31,32 @@ char *cmd_cd(task_t result, char *root){
    // strcpy(s,"/home/sunrise/桌面/wangdao/NetworkDisk/home/dir_a");
     //字符串s最后面有一个\n
     
+    
    
     int d=strlen(s);
-    printf("slen =%d \n",d);
+    //printf("slen =%d \n",d);
     s[d-1]='\0';
 
    char * ff = strrchr(s, '/');
 
-       printf("ff ==%s \n", ff + 1);
+    //  printf("ff ==%s \n", ff + 1);
     //   *ff = '\0';
-       printf("s ==%s \n", s);
-
-   
+    //   printf("s ==%s \n", s);
+   //    printf("m_pwd =%s \n",result.m_pwd);
+    
    if(strcmp(ff + 1, "..") == 0){
 
-      // printf("ff ==%s \n", ff + 1);
+       // printf("ff ==%s \n", ff + 1);
        *ff = '\0';
        ff = strrchr(s, '/');
+
+       if(strcmp(ff, "/home") != 0)
        *ff = '\0';
-      // printf("s ==%s \n", s);
+       // printf("s ==%s \n", s);
    }else if(strcmp(ff + 1, ".") == 0){
 
        *ff = '\0';
    }
-
 
 
 

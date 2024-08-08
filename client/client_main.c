@@ -106,7 +106,11 @@ int main(void){
     fd_set tmpset;
     FD_ZERO(&tmpset);
 
+    //复制文件描述符 用来操作puts 和gets
     int newfd = dup(clientfd);
+
+    //标志位 表示退出客户端
+    int quit = 0;
 
     
 
@@ -202,7 +206,6 @@ int main(void){
             case 6:
                 {
                     cmd.m_cmd = CMD_TYPE_PUTS;
-                    break;
                     memset(cmd.m_buff, '\0', sizeof(cmd.m_buff));
                     strcpy(cmd.m_buff,  send_buff);
 
@@ -219,6 +222,7 @@ int main(void){
             case 8:
                 {
                     cmd.m_cmd = CMD_TYPE_QUIT;
+                    quit = 1;
                     break;
                 }
              default:
@@ -340,6 +344,21 @@ int main(void){
             case 6:
                 {
                     cmd.m_cmd = CMD_TYPE_PUTS;
+                    
+                    recv(clientfd, buff, sizeof(buff), 0);
+
+                    char name[200]={ 0 };
+                    strcpy(name, cmd.m_buff);
+                    int name_len = strlen(name);
+                    name[name_len -1] = '\0';
+
+                    printf("puts_name =%s \n", name);
+                    //while(1);
+                    cmd_puts(newfd, name);
+                   // while(1);
+                   //
+                    printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
+                    
                     break;
                 }
             case 7:
@@ -382,7 +401,10 @@ int main(void){
               
         
         }
+        if(quit == 1)
+            break;
     }
+    printf("\033[0m\033[1;31m bye!! \033[0m\n");
 
     close(clientfd);
 

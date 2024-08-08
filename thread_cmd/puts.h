@@ -58,7 +58,9 @@ int cmd_puts(task_t task, char *path_name){
 
     int len = 0;
     int ret = recv(clientfd,&len,sizeof(len),0);
-    printf("len = %d \n",len);
+    //printf("len = %d \n",len);
+    if(len == -1)
+        return 1;
 
     ret = recv(clientfd,name,len,0);
     int wfd = open(name,O_RDWR | O_CREAT, 0664);
@@ -72,7 +74,7 @@ int cmd_puts(task_t task, char *path_name){
 
     int total =-1;
     recvn(clientfd,&total,sizeof(total));
-    printf("total = %d \n",total);
+    //printf("total = %d \n",total);
 
     len = 0;
     int tmp_len=0;
@@ -93,21 +95,22 @@ int cmd_puts(task_t task, char *path_name){
 
         write(wfd,buff,tmp_len);
 
-        if(len - lastSize > bar){
-            printf(" %5f%%  ",(double)100 * len / total);
-            int n = len / (bar*10);
-            printf("<= ");
-            for(int i=0;i<n;i++){
-                printf("#");
-            }
-            printf(" \r");
-            //别忘了
-            fflush(stdout);
-            lastSize = len;
-        }
+       // if(len - lastSize > bar){
+       //     printf(" %5f%%  ",(double)100 * len / total);
+       //     int n = len / (bar*10);
+       //     printf("<= ");
+       //     for(int i=0;i<n;i++){
+       //         printf("#");
+       //     }
+       //     printf(" \r");
+       //     //别忘了
+       //     fflush(stdout);
+       //     lastSize = len;
+       // }
 
         len += ret;
     }
+    printf("puts完成!! \n");
 
     return 0;
 }

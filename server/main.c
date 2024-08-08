@@ -88,8 +88,8 @@ int main(int argc, char* argv[]){
         //启动线程池
         threadpoolStart(pool);
 
-        printf("进入epoll  \n");
-        printf("epfd == %d \n",epfd);
+       // printf("进入epoll  \n");
+       // printf("epfd == %d \n",epfd);
 
         while(1) {
             ready_num = epoll_wait(epfd, events, 100, -1);
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]){
 
                     }
                      
-                     printf("关闭文件描述符:%d \n", fd);
+                    // printf("关闭文件描述符:%d \n", fd);
 
                      // 写日志
                    // printf("message == %s \n",message);
@@ -229,18 +229,18 @@ int main(int argc, char* argv[]){
                     //将收到的命令 以及 内容封装 成一个结构体放入阻塞队列中
                     //工作线程 会处理 
                      
-                    printf("接受客户端发过来的命令 \n");
+                    // printf("接受客户端发过来的命令 \n");
                     //将客户端发送过来的数据接受
                     client_cmd_t  client_message;
                     ret = recv(fd, &client_message, sizeof(client_message), 0);
-                    printf("ret == %d \n",ret);
+                    //printf("ret == %d \n",ret);
                     
                     //通过接受到的命令 以及内容  来初始化task 放入阻塞队列
                     task_t task;
                     memset(&task, 0, sizeof(task));
                     task.m_peerfd = fd;
                     task.m_epfd = epfd;
-                    printf("task.epfd = %d\n", task.m_epfd);
+                    //printf("task.epfd = %d\n", task.m_epfd);
                     //task.m_cmd = (cmd_type)recvCommand(fd, task.m_buff);
                     task.m_cmd = client_message.m_cmd;
                     strcpy(task.m_buff, client_message.m_buff); 
@@ -253,8 +253,8 @@ int main(int argc, char* argv[]){
                     //加入阻塞队列
                     taskEnque(pool->m_que, task);
 
-                    printf("fd = %d  cmd == %d  m_buff = %s  m_pwd = %s  \n", task.m_peerfd, task.m_cmd, task.m_buff, task.m_pwd );
-                    printf("成功加入阻塞队列 \n");
+                    //printf("fd = %d  cmd == %d  m_buff = %s  m_pwd = %s  \n", task.m_peerfd, task.m_cmd, task.m_buff, task.m_pwd );
+                    //printf("成功加入阻塞队列 \n");
                     //executeCommnd();
                 }
 

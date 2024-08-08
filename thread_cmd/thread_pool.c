@@ -43,13 +43,13 @@ void process(task_t task){
             result[len] = '\0';
             send(task.m_peerfd, result, len + 1, 0);
             
-            printf("pwd buff is  %s \n",result);
+            //printf("pwd buff is  %s \n",result);
             //while(1);
             //free(result);
             //
             //epollMod(task.m_epfd, task.m_peerfd);
                           
-            printf("pwd_epfd == %d \n",task.m_epfd);
+            //printf("pwd_epfd == %d \n",task.m_epfd);
             break;
 
         }
@@ -62,7 +62,7 @@ void process(task_t task){
             result[len] = '\0';
             send(task.m_peerfd, result, len + 1, 0);
 
-            printf("pwd buff is  %s \n",result);
+            //printf("pwd buff is  %s \n",result);
 
 
             break;
@@ -104,7 +104,29 @@ void process(task_t task){
         }
     case CMD_TYPE_PUTS:
         {
-                     break;
+            printf("puts join \n");
+
+            send(task.m_peerfd, "ok", 3, 0);
+            epollDelReadEvent(task.m_epfd, task.m_peerfd);
+            char *s = (char *)malloc(sizeof(char) * 200);
+            int len = strlen(task.m_buff);
+            task.m_buff[len -1] = '\0';
+            // strcpy(s, root);
+            // strcat(s, "/");
+            strcat(s, task.m_pwd);
+            strcat(s, "/");
+            strcat(s,task.m_buff);
+
+            printf("put_name=%s 1\n", s);
+            //strcpy(s, "/home/sunrise/桌面/wangdao/NetworkDisk/home/abc.txt");
+            //while(1);
+            cmd_puts(task, s);
+            //while(1);
+
+            epollAddReadEvent(task.m_epfd, task.m_peerfd);
+
+
+            break;
 
         }
     case CMD_TYPE_GETS:
@@ -149,7 +171,7 @@ void *work(void* arg){
        task_t  tmp;
        //从阻塞队列拿出来以一个
        int ret = taskDeque(pool->m_que,&tmp);
-        printf(" this peerfd  %d  and pwd is %s \n", tmp.m_peerfd, tmp.m_pwd);
+       // printf(" this peerfd  %d  and pwd is %s \n", tmp.m_peerfd, tmp.m_pwd);
        assert(ret == 0);
         int peerfd = tmp.m_peerfd;
        if(peerfd > 0){

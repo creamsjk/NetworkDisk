@@ -169,12 +169,17 @@ int cmd_gets(int peerfd, char *path_name){
 int cmd_puts(int peerfd, char *path_name){
 
     //读取数据发送到客户端 fd 是客户端文件描述符
+   
+
+    printf("puts开始!!\n");
     int fd = peerfd;
 
     int rfd = open(path_name,O_RDONLY);
     if(rfd == -1){
 
         printf("openfile is failed \n");
+        int len = -1;
+        send(fd, &len, sizeof(int), 0);
         return 1;
     }
 
@@ -215,6 +220,7 @@ int cmd_puts(int peerfd, char *path_name){
 
         send_bit += ret;
     }
+    printf("puts 完成!!\n");
 
     return 0;
 }

@@ -29,7 +29,7 @@ char * cmd_ls(task_t result, char *root){
     
     char * message = (char *)malloc(sizeof(char) * 10240);
     memset(message, '\0', 10240);
-     printf("dir == %s  m_pwd == %s \n", s, result.m_pwd);
+    // printf("dir == %s  m_pwd == %s \n", s, result.m_pwd);
 
    
     //打开目录流
