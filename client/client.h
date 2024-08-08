@@ -118,6 +118,7 @@ int cmd_gets(int peerfd, char *path_name){
     //进度条设置
     int bar = total / 100;
     int lastSize = 0;
+
     while(len < total){
         memset(buff,0,sizeof(buff));
         ret = recvn(clientfd,&tmp_len,sizeof(tmp_len));
@@ -146,6 +147,7 @@ int cmd_gets(int peerfd, char *path_name){
 
         len += ret;
     }
+    printf("gets 完成 \n");
 
     return 0;
 

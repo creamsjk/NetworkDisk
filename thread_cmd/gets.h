@@ -23,6 +23,7 @@ int cmd_gets(task_t result, char *path_name){
 
     //读取数据发送到客户端 fd 是客户端文件描述符
     int fd = result.m_peerfd;
+    printf("进入发送！！\n");
 
     int rfd = open(path_name,O_RDONLY);
     if(rfd == -1){
@@ -60,7 +61,7 @@ int cmd_gets(task_t result, char *path_name){
   
     //while(1);
 
- 
+    printf("开始写文件\n"); 
 
 
 

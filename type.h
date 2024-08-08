@@ -64,6 +64,8 @@ typedef struct client_cmd{
     cmd_type m_cmd;
     //命令附带的参数
     char m_buff[200];
+    //客户端的相对目录
+    char m_pwd[200];
 
 
 }client_cmd_t;

@@ -220,7 +220,9 @@ int main(int argc, char* argv[]){
                     strcpy(task.m_buff, client_message.m_buff); 
 
                     //暂时将本项目下 /home  作为所有客户端的家目录
-                    strcpy(task.m_pwd, "/home/sunrise/桌面/wangdao/NetworkDisk/home");
+                    strcpy(task.m_pwd, "/home/sunrise/桌面/wangdao/NetworkDisk");
+                    strcat(task.m_pwd, client_message.m_pwd);
+                    
 
                     //加入阻塞队列
                     taskEnque(pool->m_que, task);

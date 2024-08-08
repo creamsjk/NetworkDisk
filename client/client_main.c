@@ -78,6 +78,10 @@ int main(void){
      client_cmd_t cmd;
      cmd.m_cmd = CMD_TYPE_PWD;
      memset(&cmd.m_buff, '\0', sizeof(cmd.m_buff));
+     memset(&cmd.m_pwd, '\0', sizeof(cmd.m_pwd));
+
+     //初始目录
+     strcpy(cmd.m_pwd, "/home");
      
 
      char buff[10240];
@@ -188,19 +192,25 @@ int main(void){
                 {
                     cmd.m_cmd = CMD_TYPE_RMDIR;
                     memset(cmd.m_buff, '\0', sizeof(cmd.m_buff));
-                    strcpy(cmd.m_buff, "ok");
+                    strcpy(cmd.m_buff,  send_buff);
 
                     break;
                 }
             case 6:
                 {
                     cmd.m_cmd = CMD_TYPE_PUTS;
+                    break;
+                    memset(cmd.m_buff, '\0', sizeof(cmd.m_buff));
+                    strcpy(cmd.m_buff,  send_buff);
 
                     break;
                 }
             case 7:
                 {
                     cmd.m_cmd = CMD_TYPE_GETS;
+                    memset(cmd.m_buff, '\0', sizeof(cmd.m_buff));
+                    strcpy(cmd.m_buff,  send_buff);
+
                     break;
                 }
             case 8:
@@ -282,6 +292,7 @@ int main(void){
                         int len = strlen(pwd);
                         pwd[len]='\0';
                     }
+                    strcpy(cmd.m_pwd, pwd);
 
                    // printf("%s @ %s : ", client.user, pwd);
                    
@@ -310,6 +321,12 @@ int main(void){
                     cmd.m_cmd = CMD_TYPE_RMDIR;
                     recv(clientfd, buff, sizeof(buff), 0);
 
+                    if(strcmp(buff, "ok") == 0)
+                        printf("rmdir ok \n");
+                    else 
+                        printf("rmdir error \n");
+
+
                     //printf("%s @ %s : ", client.user, pwd);
                     printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
@@ -323,6 +340,17 @@ int main(void){
             case 7:
                 {
                     cmd.m_cmd = CMD_TYPE_GETS;
+                    char name[200]={ 0 };
+                    strcpy(name, cmd.m_buff);
+                    int name_len = strlen(name);
+                    name[name_len -1] = '\0';
+
+                    printf("name =%s \n", name);
+                     char* hh = getcwd(NULL, 0);
+                     printf("this pwd is %s \n",  hh);
+                    //while(1);
+                    cmd_gets(clientfd, name);
+                    
                     break;
                 }
             case 8:

@@ -3,6 +3,8 @@
     > Author: sunrie
     > Mail: 1102490208@qq.com 
     > Created Time: 2024年08月05日 星期一 15时05分19秒
+
+    目前完全成功!! 可以正常 cd ..  cd .
  ************************************************************************/
 
 #ifndef  __CD_
@@ -28,10 +30,34 @@ char *cmd_cd(task_t result, char *root){
     //strcat(s, result.m_buff);
    // strcpy(s,"/home/sunrise/桌面/wangdao/NetworkDisk/home/dir_a");
     //字符串s最后面有一个\n
+    
    
     int d=strlen(s);
     printf("slen =%d \n",d);
     s[d-1]='\0';
+
+   char * ff = strrchr(s, '/');
+
+       printf("ff ==%s \n", ff + 1);
+    //   *ff = '\0';
+       printf("s ==%s \n", s);
+
+   
+   if(strcmp(ff + 1, "..") == 0){
+
+      // printf("ff ==%s \n", ff + 1);
+       *ff = '\0';
+       ff = strrchr(s, '/');
+       *ff = '\0';
+      // printf("s ==%s \n", s);
+   }else if(strcmp(ff + 1, ".") == 0){
+
+       *ff = '\0';
+   }
+
+
+
+
     struct stat st;
     int ret = stat(s, &st);
    
@@ -42,6 +68,8 @@ char *cmd_cd(task_t result, char *root){
         strcpy(h,"error\0");
         return h;
     }
+
+    
 
     //printf("aaaa \n");
     int len = strspn(root, s);

@@ -88,18 +88,37 @@ void process(task_t task){
         }
     case CMD_TYPE_RMDIR:
         {
-              int ret  = cmd_rmdir(task, root);
+            int ret  = cmd_rmdir(task, root);
 
-              break;
+            if(ret == 0)
+                send(task.m_peerfd, "ok", 3, 0);
+            else
+                send(task.m_peerfd, "error", 6, 0);
+
+            break;
         }
     case CMD_TYPE_PUTS:
         {
-
-            break;
+                     break;
 
         }
     case CMD_TYPE_GETS:
         {
+            char *s = (char *)malloc(sizeof(char) * 200);
+            int len = strlen(task.m_buff);
+            task.m_buff[len -1] = '\0';
+            // strcpy(s, root);
+            // strcat(s, "/");
+            strcat(s, task.m_pwd);
+            strcat(s, "/");
+            strcat(s,task.m_buff);
+           
+            printf("gets name=%s \n", s);
+            strcpy(s, "/home/sunrise/桌面/wangdao/NetworkDisk/home/abc.txt");
+            cmd_gets(task, s);
+
+
+
              break;
         }
     case CMD_TYPE_QUIT:
