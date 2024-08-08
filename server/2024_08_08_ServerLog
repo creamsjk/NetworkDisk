@@ -1,17 +1,2 @@
-2024-08-08 00:02:40.462626 [info]: client:  ip:127.0.0.1   port:43094   connect
-2024-08-08 00:03:52.698248 [info]: client:  ip:127.0.0.1   port:37186   connect
-2024-08-08 00:05:46.970884 [info]: client:  ip:127.0.0.1   port:56038   connect
-2024-08-08 00:05:52.575137 [info]: client:  ip:127.0.0.1   port:49008   connect
-2024-08-08 00:07:41.474595 [info]: client:  ip:127.0.0.1   port:38934   connect
-2024-08-08 09:07:24.927306 [info]: client:  ip:127.0.0.1   port:59022   connect
-2024-08-08 09:09:18.446181 [info]: client:  ip:127.0.0.1   port:44110   connect
-2024-08-08 09:12:35.742782 [info]: client:  ip:127.0.0.1   port:47894   connect
-2024-08-08 09:22:56.328117 [info]: client:  ip:127.0.0.1   port:42140   connect
-2024-08-08 09:23:50.019775 [info]: client:  ip:127.0.0.1   port:55290   connect
-2024-08-08 09:25:07.503749 [info]: client:  ip:127.0.0.1   port:40946   connect
-2024-08-08 09:26:35.940850 [info]: client:  ip:127.0.0.1   port:33040   connect
-2024-08-08 09:27:49.931552 [info]: client:  ip:127.0.0.1   port:60650   connect
-2024-08-08 09:31:00.173799 [info]: client:  ip:127.0.0.1   port:47716   connect
-2024-08-08 09:32:16.301265 [info]: client:  ip:127.0.0.1   port:60442   connect
-2024-08-08 09:35:17.319539 [info]: client:  ip:127.0.0.1   port:56356   connect
-2024-08-08 09:36:45.953624 [info]: client:  ip:127.0.0.1   port:57384   connect
+2024-08-08 10:20:42.990933 [info]: fd: 7   ip:127.0.0.1   port:38504   connect
+2024-08-08 10:20:53.379714 [info]: fd: 7   ip:127.0.0.1   port:38504   disconnect

@@ -3,7 +3,8 @@
 #include"../thread_cmd/thread_pool.h"
 #define MAXSIZE 1024
 
-//编译命令  gcc main.c server.c  ../thread_cmd/thread_pool.c  ../thread_cmd/queue_thread.c  -o server -pthread -w
+//编译命令  gcc main.c server.c  ../thread_cmd/thread_pool.c  ../thread_cmd/queue_thread.c
+//-o server -pthread -w
 
 
 
@@ -128,7 +129,7 @@ int main(int argc, char* argv[]){
                     // write_log(log, message);
                     //写入客户端ip、端口、以及连接时间
                     char message[MAXSIZE] = { 0 };
-                    sprintf(message, "client:  ip:%s   port:%d   connect", inet_ntoa(clientAdd.sin_addr), ntohs(clientAdd.sin_port));
+                    sprintf(message, "fd: %d   ip:%s   port:%d   connect", peerfd,  inet_ntoa(clientAdd.sin_addr), ntohs(clientAdd.sin_port));
                     //printf("message == %s \n",message);
                     write_log(log, message);
 
@@ -144,13 +145,17 @@ int main(int argc, char* argv[]){
 
                     if(clientList.clientSize == 0) {
                         clientList.pFront = clientList.pRear = pClient;
+                    
                         pClient->pNext = NULL;
                     }else {
 
                         clientList.pRear->pNext = pClient;
                         clientList.pRear = pClient;
+                        pClient->pNext = NULL ;
                     }
                     clientList.clientSize++;
+                   // printf(" ip:%s  port:%s  \n", pClient->m_ip, pClient->m_port );
+
                     //printf("clientList.clientSize == %d \n",clientList.clientSize);
 
                 }else if(fd == exitPipe[0]){
@@ -165,10 +170,23 @@ int main(int argc, char* argv[]){
                      //事件发生 就是客户端关闭 从epoll中将他删除
                      //当然 还要从队列中删除 这个文件描述符  目前没有写
                      
+                    char message[MAXSIZE] = { 0 };
+                    if(clientList.pFront->pNext != NULL){
+                        printf("clientList 不为NULL \n");
+                    }
+
+                     
                     if(clientList.clientSize == 1){
-                        client_t *p = clientList.pFront->pNext;
+                        client_t *p = clientList.pFront;
                         clientList.pFront = NULL;
                         clientList.pRear = NULL;
+                        if( p != NULL){
+
+                        sprintf(message, "fd: %d   ip:%s   port:%s   disconnect", p->m_peerfd, p->m_ip,  p->m_port);
+                        //printf(" message =%s  ip:%s  port:%s  \n", message, p->m_ip, p->m_port );
+                        }
+                        
+
                         free(p);
                         p = NULL;
                     }else {
@@ -186,6 +204,8 @@ int main(int argc, char* argv[]){
                         //如果pPre->next == NULL  就说明他是最后一个改变pRear指针
                         if(pPre->pNext == NULL)
                             clientList.pRear = pPre;
+                        if(pCur != NULL)
+                        sprintf(message, "fd: %d  ip:%s   port:%s   disconnect", pCur->m_peerfd,  pCur->m_ip,  pCur->m_port);
 
                         free(pCur);
                         pCur = NULL;
@@ -193,6 +213,12 @@ int main(int argc, char* argv[]){
                     }
                      
                      printf("关闭文件描述符:%d \n", fd);
+
+                     // 写日志
+                   // printf("message == %s \n",message);
+                    write_log(log, message);
+                     
+                     
                      clientList.clientSize--;
                      epollDelReadEvent(epfd, fd);
                      close(fd);
