@@ -503,7 +503,7 @@ int insert_file(MYSQL* pconn, char* filename, char* filetype, char* username, ch
 int insert_global_file(MYSQL* pconn, char* file_hash, char* filename, size_t filesize)
 {
     char sql[256];
-    sprintf(sql, "insert into GlobalFile values('%s', '%s', %ld);", file_hash, filename, filesize);
+    sprintf(sql, "insert into GlobalFile(file_hash, filename, filesize) values('%s', '%s', %ld);", file_hash, filename, filesize);
 
     if(execute_query(pconn, sql) == -1)
         return -1;
