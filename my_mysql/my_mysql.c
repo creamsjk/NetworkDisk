@@ -189,6 +189,41 @@ int update_user_pwd(MYSQL* pconn, char* username, char* new_pwd)
 }
 
 /*
+ * 查找用户目录是否存在
+ * 参数：pconn 指向MYSQL结构体的指针
+ *       username 特定的用户名
+ *       filename 需要查找的目录名
+ *       filepath 在特定路径下查找
+ * 返回值：文件名存在返回1
+ *         文件名不存在返回0
+ *         失败返回-1
+ * */
+int find_user_file_is_exist(MYSQL* pconn, char* username, char* filename, char* filepath)
+{
+    char sql[256];
+    sprintf(sql, "select filename from File where username = '%s' and filename = '%s' and filepath = '%s' and filetype = 'd';", username, filename, filepath);
+
+    if(execute_query(pconn, sql) == -1)
+        return -1;
+
+    MYSQL_RES* pres = mysql_store_result(pconn);
+    if(pres)
+    {
+        int rows = mysql_num_rows(pres);
+        mysql_free_result(pres);
+        if(rows > 0)
+            return 1;
+        else 
+            return 0;
+    }
+    else
+    {
+        perror(mysql_error(pconn));
+        return -1;
+    }
+}
+
+/*
  * 查找文件是否已经在服务器上
  * 参数：pconn 指向MYSQL结构体的指针
  *       file_hash 确定文件唯一的密文
@@ -543,10 +578,10 @@ int get_user_count(MYSQL* pconn, char* file_hash)
     }
 }
 
-static int delete_user_file(MYSQL* pconn, char* filename, char* username)
+static int delete_user_file(MYSQL* pconn, char* filename, char* username, char* filepath)
 {
     char sql[256];
-    sprintf(sql, "delete from File where filename = '%s' and username = '%s';", filename, username);
+    sprintf(sql, "delete from File where filename = '%s' and username = '%s' and filepath = '%s';", filename, username, filepath);
 
     if(execute_query(pconn, sql) == -1)
         return -1;
@@ -591,18 +626,19 @@ static int update_global_file_usercount(MYSQL* pconn, char* file_hash, int count
  *  pconn 指向MYSQL结构体的指针
  *  filename 需要删除的文件名
  *  username 特定的用户名
+ *  filepath 特定的路径
  * 返回值：
  *  成功0
  *  失败-1
  * */
-int delete_file(MYSQL* pconn, char* filename, char* username)
+int delete_file(MYSQL* pconn, char* filename, char* username, char* filepath)
 {
     char* file_hash = get_file_hash(pconn, filename, username);
     int usercount = get_user_count(pconn, file_hash);
     int ret;
     if(usercount == 1)
     {
-        ret = delete_user_file(pconn, filename, username);
+        ret = delete_user_file(pconn, filename, username, filepath);
         if(ret == -1)
             return -1;
         ret = delete_global_file(pconn, file_hash);
@@ -612,7 +648,7 @@ int delete_file(MYSQL* pconn, char* filename, char* username)
     else
     {
         usercount--;
-        ret = delete_user_file(pconn, filename, username);
+        ret = delete_user_file(pconn, filename, username, filepath);
         if(ret == -1)
             return -1;
         ret = update_global_file_usercount(pconn, file_hash, usercount);
