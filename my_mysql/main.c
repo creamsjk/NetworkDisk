@@ -65,8 +65,17 @@ int main(int argc, char* argv[])
         printf("failed.\n");
     */
 
-    insert_file(pconn, "text2", "f", "ccxwz", "SHBGJASDKNJNKAFD5S8ERAU7S8UJ18SJ", "/ccxwz");
+    //insert_file(pconn, "text6", "f", "ccxwz", "YYYGJASDKNJNKAFD5S8ERAU7S8UJ18SJ", "/ccxwz");
+    //insert_global_file(pconn, "YYYGJASDKNJNKAFD5S8ERAU7S8UJ18SJ", "text6", 1484848);
+    
+    //delete_file(pconn, "text2", "ccxwz", "/ccxwz");
+    int ret = find_user_file_is_exist(pconn, "ccxts", "text2", "/ccxts");
+    if(ret == 1)
+        printf("文件存在\n");
 
+    ret = find_user_file_is_exist(pconn, "ccxts", "text2", "/ccxts/dir");
+    if(ret == 0)
+        printf("文件不存在\n");
     return 0;
 }
 

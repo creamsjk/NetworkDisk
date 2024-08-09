@@ -578,10 +578,10 @@ int get_user_count(MYSQL* pconn, char* file_hash)
     }
 }
 
-static int delete_user_file(MYSQL* pconn, char* filename, char* username)
+static int delete_user_file(MYSQL* pconn, char* filename, char* username, char* filepath)
 {
     char sql[256];
-    sprintf(sql, "delete from File where filename = '%s' and username = '%s';", filename, username);
+    sprintf(sql, "delete from File where filename = '%s' and username = '%s' and filepath = '%s';", filename, username, filepath);
 
     if(execute_query(pconn, sql) == -1)
         return -1;
@@ -626,18 +626,19 @@ static int update_global_file_usercount(MYSQL* pconn, char* file_hash, int count
  *  pconn 指向MYSQL结构体的指针
  *  filename 需要删除的文件名
  *  username 特定的用户名
+ *  filepath 特定的路径
  * 返回值：
  *  成功0
  *  失败-1
  * */
-int delete_file(MYSQL* pconn, char* filename, char* username)
+int delete_file(MYSQL* pconn, char* filename, char* username, char* filepath)
 {
     char* file_hash = get_file_hash(pconn, filename, username);
     int usercount = get_user_count(pconn, file_hash);
     int ret;
     if(usercount == 1)
     {
-        ret = delete_user_file(pconn, filename, username);
+        ret = delete_user_file(pconn, filename, username, filepath);
         if(ret == -1)
             return -1;
         ret = delete_global_file(pconn, file_hash);
@@ -647,7 +648,7 @@ int delete_file(MYSQL* pconn, char* filename, char* username)
     else
     {
         usercount--;
-        ret = delete_user_file(pconn, filename, username);
+        ret = delete_user_file(pconn, filename, username, filepath);
         if(ret == -1)
             return -1;
         ret = update_global_file_usercount(pconn, file_hash, usercount);
