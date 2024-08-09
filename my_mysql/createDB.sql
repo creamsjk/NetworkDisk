@@ -27,7 +27,10 @@ CREATE TABLE GlobalFile
 (
 	file_hash VARCHAR(64) PRIMARY KEY,
 	filename VARCHAR(255) NOT NULL,
-	filesize BIGINT NOT NULL
+
+	filesize BIGINT NOT NULL,
+	usercount INT DEFAULT 1
+
 );
 
 UPDATE User set pwd = '/ccxts&' where username = 'ccxts';
@@ -43,7 +46,7 @@ INSERT INTO File(filename, filetype, username, file_hash, filepath) VALUES
 ('text5', 'f', 'ccxts', 'MNBVJASDKNJNKAFD5S8ERAU7S8UJ18SJ', '/ccxts'),
 ('text6', 'f', 'ccxts', 'VCGSJASDKNJNKAFD5S8ERAU7S8UJ18SJ', '/ccxts');
 
-INSERT INTO GlobalFile VALUES
+INSERT INTO GlobalFile(file_hash, filename, filesize) VALUES
 ('JNBHJASDKNJNKAFD5S8ERAU7S8UJ18SJ', 'text1', '150465'),
 ('SHBGJASDKNJNKAFD5S8ERAU7S8UJ18SJ', 'text2', '15852565'),
 ('QUAMJASDKNJNKAFD5S8ERAU7S8UJ18SJ', 'text3', '780465'),

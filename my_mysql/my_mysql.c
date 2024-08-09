@@ -349,14 +349,14 @@ char** get_user_dir_by_path(MYSQL* pconn, char* username, char* path)
 /*
  * 获取文件的大小
  * 参数：pconn 指向MYSQL结构体的指针
- *       filename 需要查找的文件名
+ *       file_hash 文件的唯一标识
  * 返回值：查找成功返回文件大小
  *         失败返回-1
  * */
-size_t get_file_size(MYSQL* pconn, char* filename)
+size_t get_file_size(MYSQL* pconn, char* file_hash)
 {
     char sql[256];
-    sprintf(sql, "select filesize from GlobalFile where filename = '%s';", filename);
+    sprintf(sql, "select filesize from GlobalFile where file_hash = '%s';", file_hash);
 
     if(execute_query(pconn, sql) == -1)
         return -1;
@@ -384,13 +384,14 @@ size_t get_file_size(MYSQL* pconn, char* filename)
  * 获取文件的hash值
  * 参数：pconn 指向MYSQL结构体的指针
  *       filename 需要查找的文件名
+ *       username 所属的用户名
  * 返回值：查找成功返回文件的哈希值
  *         失败返回NULL
  * */
-char* get_file_hash(MYSQL* pconn, char* filename)
+char* get_file_hash(MYSQL* pconn, char* filename, char* username)
 {
     char sql[256];
-    sprintf(sql, "select file_hash from GlobalFile where filename = '%s';", filename);
+    sprintf(sql, "select file_hash from File where filename = '%s' and username = '%s';", filename, username);
 
     if(execute_query(pconn, sql) == -1)
         return NULL;
@@ -453,6 +454,8 @@ char* get_filepath(MYSQL* pconn, char* filename, char* username)
     }
 }
 
+int get_user_count(MYSQL* pconn, char* file_hash);
+static int update_global_file_usercount(MYSQL* pconn, char* file_hash, int count);
 /*
  * 用户添加新文件
  * 参数：pconn 指向MYSQL结构体的指针
@@ -470,9 +473,20 @@ int insert_file(MYSQL* pconn, char* filename, char* filetype, char* username, ch
 
     if(execute_query(pconn, sql) == -1)
         return -1;
-
+    
     int rows = mysql_affected_rows(pconn);
     printf("QUERY OK, %d row affected.\n", rows);
+    
+    int ret = -1;
+    if(find_file_is_exist(pconn, file_hash) == 1)
+    {
+        int usercount = get_user_count(pconn, file_hash);
+        if(usercount == -1)
+            return -1;
+        ret = update_global_file_usercount(pconn, file_hash, usercount + 1);
+        if(ret == -1)
+            return -1;
+    }
 
     return 0;
 }
@@ -496,6 +510,116 @@ int insert_global_file(MYSQL* pconn, char* file_hash, char* filename, size_t fil
 
     int rows = mysql_affected_rows(pconn);
     printf("QUERY OK, %d row affected.\n", rows);
+
+    return 0;
+}
+
+int get_user_count(MYSQL* pconn, char* file_hash)
+{
+    char sql[256];
+    sprintf(sql, "select usercount from GlobalFile where file_hash = '%s';", file_hash);
+
+    if(execute_query(pconn, sql) == -1)
+        return -1;
+
+    MYSQL_RES* pres = mysql_store_result(pconn);
+    if(pres)
+    {
+        int usercount = -1;
+        MYSQL_ROW row = NULL;
+        if((row = mysql_fetch_row(pres)) != NULL)
+        {
+            usercount = atoi(row[0]);
+            printf("usercount = %d\n", usercount);
+        }
+
+        mysql_free_result(pres);
+        return usercount;
+    }
+    else
+    {
+        perror(mysql_error(pconn));
+        return -1;
+    }
+}
+
+static int delete_user_file(MYSQL* pconn, char* filename, char* username)
+{
+    char sql[256];
+    sprintf(sql, "delete from File where filename = '%s' and username = '%s';", filename, username);
+
+    if(execute_query(pconn, sql) == -1)
+        return -1;
+
+    int rows = mysql_affected_rows(pconn);
+    printf("QUERY OK, %d row affected.\n", rows);
+
+    return 0;
+}
+
+static int delete_global_file(MYSQL* pconn, char* file_hash)
+{
+    char sql[256];
+    sprintf(sql, "delete from GlobalFile where usercount = 1 and file_hash = '%s';", file_hash);
+
+    if(execute_query(pconn, sql) == -1)
+        return -1;
+
+    int rows = mysql_affected_rows(pconn);
+    printf("QUERY OK, %d row affected.\n", rows);
+
+    return 0;
+}
+
+static int update_global_file_usercount(MYSQL* pconn, char* file_hash, int count)
+{
+    char sql[256];
+    sprintf(sql, "update GlobalFile set usercount = %d where file_hash = '%s';", count, file_hash);
+
+    if(execute_query(pconn, sql) == -1)
+        return -1;
+
+    int rows = mysql_affected_rows(pconn);
+    printf("QUERY OK, %d row affected.\n", rows);
+
+    return 0;
+}
+
+/*
+ * 删除文件
+ * 参数：
+ *  pconn 指向MYSQL结构体的指针
+ *  filename 需要删除的文件名
+ *  username 特定的用户名
+ * 返回值：
+ *  成功0
+ *  失败-1
+ * */
+int delete_file(MYSQL* pconn, char* filename, char* username)
+{
+    char* file_hash = get_file_hash(pconn, filename, username);
+    int usercount = get_user_count(pconn, file_hash);
+    int ret;
+    if(usercount == 1)
+    {
+        ret = delete_user_file(pconn, filename, username);
+        if(ret == -1)
+            return -1;
+        ret = delete_global_file(pconn, file_hash);
+        if(ret == -1)
+            return -1;
+    }
+    else
+    {
+        usercount--;
+        ret = delete_user_file(pconn, filename, username);
+        if(ret == -1)
+            return -1;
+        ret = update_global_file_usercount(pconn, file_hash, usercount);
+        if(ret == -1)
+            return -1;
+        
+    }
 
     return 0;
 }

@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     }
     free(user_files);
     */
-    
+    /*
     size_t filesize = get_file_size(pconn, "text2");
     printf("filesize = %ld\n", filesize);
 
@@ -58,7 +58,15 @@ int main(int argc, char* argv[])
 
     char* file_path = get_filepath(pconn, "text2", user.username);
     printf("file_path = %s\n", file_path);
-    
+    */
+    /*
+    int ret = delete_file(pconn, "text1", "ccxts"); 
+    if(ret == -1)
+        printf("failed.\n");
+    */
+
+    insert_file(pconn, "text2", "f", "ccxwz", "SHBGJASDKNJNKAFD5S8ERAU7S8UJ18SJ", "/ccxwz");
+
     return 0;
 }
 
