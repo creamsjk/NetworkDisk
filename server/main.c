@@ -2,8 +2,12 @@
 #include"../log/log.h"
 #include"../thread_cmd/thread_pool.h"
 #include"../my_mysql/my_mysql.h"
+#include"../timer/hashtable.h"
+#include"../timer/timer.h"
+
 #define MAXSIZE 1024
-#define MAXUSER
+#define MAXUSER  1024
+#define MAXTIME  10
 
 //编译命令  
 //gcc main.c server.c  ../thread_cmd/thread_pool.c  ../thread_cmd/queue_thread.c ../my_mysql/my_mysql.c   -o server -pthread -w -lmysqlclient
@@ -97,9 +101,28 @@ int main(int argc, char* argv[]){
 
        // printf("进入epoll  \n");
        // printf("epfd == %d \n",epfd);
+       
+
+      //  printf("开始定时器初始化 \n");
+       //初始化定时器相关内容 定时器10s触发
+       HashTable hashlist;
+       HashTable * ht = &hashlist;
+       initHashTable(ht);
+      // printf("哈希表初始化完成");
+       my_timer  timer[MAXTIME];
+       for(int i=0; i < MAXTIME ;i++){
+  
+         timer[i].solt = (my_time_t*)malloc(sizeof(my_time_t));
+         timer[i].solt->fd = -1;
+         timer[i].solt->pNext = NULL;
+       }
+         int time_point = 0;     
+       //  printf("结束定时器初始化 \n");
+       
 
         while(1) {
-            ready_num = epoll_wait(epfd, events, 100, -1);
+            //timeout = 1 表示等待1s
+            ready_num = epoll_wait(epfd, events, 100, 1000);
             ERROR_CHECK(ready_num, -1, "epoll_wait");
             for(int i = 0; i < ready_num; i++){
                 int fd = events[i].data.fd;
@@ -351,8 +374,62 @@ int main(int argc, char* argv[]){
                 }
 
             }
+           // printf("设置定时器 \n");
+            //在这里设置调整定时器
+            int tmp_time = 0;
+            if(time_point == 0){
+                tmp_time = MAXTIME -1;
+            }else if(time_point == MAXSIZE){
+                tmp_time = 0;
+            }else{
+                tmp_time = time_point - 1;
+            }
+
+           // printf("定时器处理fd \n");
+            //开始处理那些fd
+            for(int i=0; i < ready_num; i++){
+                 
+                int fd = events[i].data.fd;
+                //从原本位置取出来
+                char * c = (char *)malloc( 4);
+                sprintf(c, "%d", fd);
+                void * index_slot = find(ht, c);
+               // printf("find hash success \n");
+                int index =(long ) index_slot;
+
+               // printf("开始delete_timer \n");
+                //从原本的槽里面取出来
+                delete_timer(fd, timer[index].solt);
+               // printf("delete_timer 成功\n");
+                //更新位置
+                insert(ht, c , (void *)tmp_time);
+                //在新位置添加节点
+                add_timer(fd,timer[tmp_time].solt);
+               // printf("add_timer 成功\n");
+               free(c);
+
+            }
+           // printf("处理fd结束 \n");
+            //现在这个槽里面剩下的都是需要断开的连接
+             
+              int close_time = 0;
+              while(timer[time_point].solt->pNext != NULL){
+                  close_time = take_timer(timer[time_point].solt);
+                  if(close_time == listenfd)
+                      break;
+
+                  //关闭响应文件描述 即断开连接
+                  close(close_time);
+                  printf("结束一个fd  %d \n", close_time);
+              }
+              //轮询指针 指向下一个位置
+              time_point++;
+              time_point %= MAXTIME;
+             // printf("结束定时器设置  \n");
+            
 
         }
+        
     }
     if(pid != 0){
         //父进程
