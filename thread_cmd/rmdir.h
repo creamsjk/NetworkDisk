@@ -19,8 +19,10 @@
 int  cmd_rmdir(task_t result , char* root){
 
     char *s = (char *)malloc(sizeof(char) * 200);
-    strcpy(s, root);
-    strcat(s, "/");
+    int len = strlen(result.m_buff);
+    result.m_buff[len -1] = '\0';
+   // strcpy(s, root);
+   // strcat(s, "/");
     strcat(s, result.m_pwd);
     strcat(s, "/");
     strcat(s,result.m_buff);

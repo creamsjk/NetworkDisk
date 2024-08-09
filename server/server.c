@@ -1,5 +1,5 @@
 #include "server.h"
-#include "type.h"
+#include "../type.h"
 #define MAXSIZE 256
 
 //ip地址为点分十进制表示
@@ -47,6 +47,11 @@ int tcp_init(const char* ip, const char* port){
     int listenfd = socket(AF_INET, SOCK_STREAM, 0);
     ERROR_CHECK(listenfd, -1, "socket");
 
+    //设置端口复用
+    int on = 1;
+    int ret = setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
+
     //绑定ip地址
     struct sockaddr_in serverAdd;
     socklen_t len = sizeof(serverAdd);
@@ -54,7 +59,7 @@ int tcp_init(const char* ip, const char* port){
     serverAdd.sin_family = AF_INET;
     serverAdd.sin_port = htons(atoi(port));
     serverAdd.sin_addr.s_addr = inet_addr(ip);
-    int ret = bind(listenfd, (struct sockaddr*)&serverAdd, len);
+    ret = bind(listenfd, (struct sockaddr*)&serverAdd, len);
     ERROR_CHECK(ret, -1, "bind");
 
     //启动监听,最大支持11个连接
@@ -69,18 +74,48 @@ int epollAddReadEvent(int epfd, int fd){
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
-    ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    //ev.events = EPOLLIN |EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     int ret = epoll_ctl(epfd, EPOLL_CTL_ADD, fd ,&ev);
     ERROR_CHECK(ret, -1, "epoll_ctl");
 
     return 0;
 }
 
+int epollAddReadEventServer(int epfd, int fd){
+    struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.data.fd = fd;
+   // ev.events = EPOLLIN |EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+    int ret = epoll_ctl(epfd, EPOLL_CTL_ADD, fd ,&ev);
+    ERROR_CHECK(ret, -1, "epoll_ctl");
+
+    return 0;
+}
+
+int epollMod(int epfd, int fd){
+
+    struct epoll_event ev;
+    memset(&ev, 0, sizeof(ev));
+    ev.data.fd = fd;
+    ev.events = EPOLLIN |EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    // ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
+    int ret = epoll_ctl(epfd, EPOLL_CTL_MOD, fd ,&ev);
+    ERROR_CHECK(ret, -1, "epoll_mod");
+
+
+
+}
+
+
+
 int epollDelReadEvent(int epfd, int fd){
     struct epoll_event ev;
     memset(&ev, 0, sizeof(ev));
     ev.data.fd = fd;
-    ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    //ev.events = EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
+    ev.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     int ret = epoll_ctl(epfd, EPOLL_CTL_DEL, fd ,&ev);
     ERROR_CHECK(ret, -1, "epoll_ctl");
 
@@ -148,7 +183,7 @@ int userLoginCheck2(const char* encrypt, const char* username){
 }
 
 //按(length, cmdType, content)类型接收客户端数据
-//返回值为客户端发送的指令本身
+//返回指令类型，buf为指令参数
 int recvCommand(int peerfd, char* buf) {
     //先获取数据长度
     int length;
@@ -159,11 +194,33 @@ int recvCommand(int peerfd, char* buf) {
     recv(peerfd, &cmd, sizeof(cmd), MSG_WAITALL);
     
     if(cmd = CMD_TYPE_NOTCMD){
-        return NULL;
+        return -1;
     }
     recv(peerfd, buf, length, MSG_WAITALL);
 
-    return 0;
+    return (int)cmd;
 }
 
-
+//生成随机字符串（salt值）
+//n为生成salt值位数
+char* generateSalt(int n){
+    int flag, i;
+    char* salt;
+    srand((unsigned) time(NULL ));
+    if ((salt= (char*) malloc(n)) == NULL ) {
+        fprintf(stderr, "malloc failed\n");
+        return NULL ;
+    }
+    for (i = 0; i < n+1; i++) {
+        flag = rand() % 3;
+        switch (flag) {
+        case 0: salt[i] = 'A' + rand() % 26; break;
+        case 1: salt[i] = 'a' + rand() % 26; break;
+        case 2: salt[i] = '0' + rand() % 10; break;
+        default: salt[i] = 'x'; break;
+        }
+    } 
+    //生成随机字符串末尾加上'\0'
+    salt[n] = '\0';
+    return salt;
+}

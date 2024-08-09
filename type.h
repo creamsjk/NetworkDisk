@@ -26,26 +26,39 @@ typedef enum cmd_t{
 
      //文件描述符
      int m_peerfd;
+     //epfd 调用完gets or puts 需要添加
+     int m_epfd;
      //命令
      cmd_type m_cmd;
      //命令附带的参数
      char m_buff[200];
      //客户端的工作目录
      char m_pwd[200];
+     //要处理的用户
+     char m_user[20];
 
 }task_t;
 
-typedef struct clint_data{
+//客户端信息
+typedef struct client_data{
 
     //客户端文件描述符
     int m_peerfd;
      //ip地址
     char m_ip[100];
-     //端口    
+     //端口
     char m_port[20];
      //工作目录
     char m_pwd[200];
+    //指向下一个用户
+    struct client_data* pNext;
 }client_t;
+
+//在线用户队列
+typedef struct client_list {
+    client_t *pFront, *pRear;
+    int clientSize;
+} client_List;
 
 
 //客户端发送的数据
@@ -55,9 +68,36 @@ typedef struct client_cmd{
     cmd_type m_cmd;
     //命令附带的参数
     char m_buff[200];
+    //客户端的相对目录
+    char m_pwd[200];
 
 
 }client_cmd_t;
+
+//进行puts 和gets 传输的结构体
+typedef struct {
+    int len;
+    char buff[1020];
+
+}message_t;
+
+
+//客户端发送的账号密码结构 
+typedef  struct user_s{
+
+   char user[6];
+   char password[33];
+   char pwd[128];
+
+}user_t;
+
+//文件描述符与username对应关系
+typedef struct fd_username{
+    int  user_fd;
+    char username[20];
+
+}fd_list;
+
 
 
 #endif

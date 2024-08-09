@@ -7,39 +7,30 @@
 #ifndef  __CLIENT_H
 #define  __CLIENT_H
 
+#include"../type.h"
+#include<stdio.h>
+#include<stdlib.h>
 #include<string.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<sys/stat.h>
+#include<sys/fcntl.h>
+#include<unistd.h>
+#include<sys/mman.h>
+#include<errno.h>
+#include<error.h>
+#include<fcntl.h>
 
+#define SPLICE_F_MORE 0x04
+
+/*
 typedef  struct user_s{
 
    char user[6];
    char password[33];
 
 }user_t;
-
-typedef enum cmd_t{
-    CMD_TYPE_PWD = 1,
-    CMD_TYPE_LS,
-    CMD_TYPE_CD,
-    CMD_TYPE_MKDIR,
-    CMD_TYPE_RMDIR,
-    CMD_TYPE_PUTS,
-    CMD_TYPE_GETS,
-    CMD_TYPE_QUIT,
-    CMD_TYPE_NOTCMD
-
-
-}cmd_type;
-
-//客户端发送的数据
-typedef struct client_cmd{
-
-     //命令
-     cmd_type m_cmd;
-     //命令附带的参数
-     char m_buff[200];
-
-
-}client_cmd_t;
+*/
 
 int transfer_cmd(char *cmd){
     
@@ -62,6 +53,212 @@ int transfer_cmd(char *cmd){
     else 
         return 9;
 }
+int recvn(int sockfd, void* buff, int len);
+
+//接收确定的字节数的数据 等接受到注定数量的数据在结束
+int recvn(int sockfd, void * buff, int len)
+{
+    int left = len;
+    char * pbuf =(char *) buff;
+    int ret = -1;
+    while(left > 0) {
+        ret = recv(sockfd, pbuf, left, 0);
+        if(ret == 0) {
+            break;
+        } else if(ret < 0) {
+            perror("recv");
+            return -1;
+        }
+        left -= ret;
+        pbuf += ret;
+    }
+    return len - left;
+}
+
+
+
+//从服务端下载东西  已经增加断点传输   
+int cmd_gets(int peerfd, char *path_name){
+
+    int clientfd = peerfd;
+
+    //进行数据的接受
+
+    char name[256]={0};
+    char buff[1024];
+    memset(buff,0,sizeof(buff));
+    memset(name,0,sizeof(name));
+
+    int len = 0;
+    int ret = recv(clientfd,&len,sizeof(len),0);
+    //printf("len = %d  name=%s \n", len, path_name);
+    if(len == -1){
+        printf("文件不存在或错误!!!\n");
+        return 1;
+    }
+
+    ret = recv(clientfd,name,len,0);
+    //int wfd = open(name,O_RDWR | O_CREAT, 0664);
+    int wfd = open(path_name,O_RDWR | O_CREAT, 0664);
+  
+  
+    if(wfd == -1){
+        printf("open failed \n");
+        exit(1);
+    }
+    
+    //发送文件偏移位置  对面也偏移相同位置  发送一个long
+
+     int file_len = lseek(wfd, 0, SEEK_END);
+     send(clientfd, &file_len, sizeof(file_len), 0);
+     int cur_len =  lseek(wfd, 0, SEEK_CUR);
+     printf("file_len == %d  cur_len == %d   \n", file_len, cur_len);
+
+     //  while(1);
+
+
+
+    //开始写文件
+
+    int total =-1;
+    recvn(clientfd,&total,sizeof(total));
+    printf("total = %d \n",total);
+   if(total == file_len){
+       printf("文件已经传输过了 不再需要传输\n");
+       return 0;
+   }
+
+    len = 0;
+    int tmp_len=0;
+    //printf("len = %d total = %d \n",len,total);
+    //进度条设置
+    int bar = total / 100;
+    int lastSize = 0;
+
+    
+    total -= file_len;
+    //100M
+    if(total < 100000000){
+
+
+        while(len < total){
+            memset(buff,0,sizeof(buff));
+            ret = recvn(clientfd,&tmp_len,sizeof(tmp_len));
+            // printf("tmp_len = %d \n",tmp_len);
+            ret = recvn(clientfd,buff,tmp_len);
+
+            if(ret <=0 )
+                break;
+            // printf("ret = %d \n",ret);
+            // printf("buff = %s \n",buff);
+
+            write(wfd,buff,tmp_len);
+
+            if(len - lastSize > bar){
+                printf(" %5f%%  ",(double)100 * len / total);
+                int n = len / (bar*10);
+                printf("<= ");
+                for(int i=0;i<n;i++){
+                    printf("#");
+                }
+                printf(" \r");
+                //别忘了
+                fflush(stdout);
+                lastSize = len;
+            }
+
+            fflush(stdout);
+
+            len += ret;
+        }
+    }else{
+
+        int pipefd[2];
+        pipe(pipefd);
+        printf("进入splice \n");
+
+        ret = 0;
+        while(len < total){
+            ret = splice(clientfd, NULL, pipefd[1], NULL, 4096, SPLICE_F_MORE);
+
+           // printf("ret1 == %d\n",ret);
+            len += ret;
+
+            ret = splice(pipefd[0], NULL, wfd, NULL, ret, SPLICE_F_MORE);
+            //printf("ret2 == %d\n",ret);
+
+        }
+        close(pipefd[1]);
+        close(pipefd[0]);
+  
+    }
+    printf("gets 完成                                       \n");
+
+    return 0;
+
+}
+
+//调用gets 两边都是gets  puts 两边都是puts                                                      
+int cmd_puts(int peerfd, char *path_name){
+
+    //读取数据发送到客户端 fd 是客户端文件描述符
+   
+
+    printf("puts开始!!\n");
+    int fd = peerfd;
+
+    int rfd = open(path_name,O_RDONLY);
+    if(rfd == -1){
+
+        printf("openfile is failed \n");
+        int len = -1;
+        send(fd, &len, sizeof(int), 0);
+        return 1;
+    }
+
+    message_t srcMessage;
+    memset(&srcMessage,0,sizeof(srcMessage));
+
+    //传输文件名
+    strcpy(srcMessage.buff,path_name);
+    srcMessage.len = strlen(srcMessage.buff);
+
+    //发送全部4 + buff 的内容
+    int ret = send(fd,&srcMessage,4+srcMessage.len,0);
+    printf("send firse %d \n",4+srcMessage.len);
+
+    struct stat st;
+    fstat(rfd,&st);
+    //all bits
+    int total = st.st_size;
+    int send_bit = 0;
+    int len = send(fd,&total,sizeof(total),0);
+    printf("send total success  \n");
+
+    while(send_bit < total){
+        memset(&srcMessage,0,sizeof(srcMessage));
+
+        //从文件中读一些
+        len = read(rfd,srcMessage.buff,sizeof(srcMessage.buff));
+       // printf("len == %d \n",len);
+        srcMessage.len = len;
+        if(srcMessage.len <=0 )
+            break;
+       // printf("srcMessage.len  =  %d  %s \n",srcMessage.len,srcMessage.buff);
+
+        //分两次发送 第一次发送的是这次发送的文件大小 第二次是真正的文件
+        ret = send(fd,&srcMessage.len,sizeof(srcMessage.len),0);
+
+        ret = send(fd,srcMessage.buff,srcMessage.len,0);
+
+        send_bit += ret;
+    }
+    //printf("puts 完成!!\n");
+
+    return 0;
+}
+
+
 
 
 #endif

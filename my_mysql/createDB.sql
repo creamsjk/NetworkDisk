@@ -27,8 +27,10 @@ CREATE TABLE GlobalFile
 (
 	file_hash VARCHAR(64) PRIMARY KEY,
 	filename VARCHAR(255) NOT NULL,
+
 	filesize BIGINT NOT NULL,
 	usercount INT DEFAULT 1
+
 );
 
 UPDATE User set pwd = '/ccxts&' where username = 'ccxts';

@@ -1,7 +1,7 @@
 #ifndef __SERVER_H
 #define __SERVER_H 
 
-#include "type.h"
+#include "../type.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,12 +60,14 @@ int tcp_init(const char* ip, const char* port);
 //封装epoll函数
 int epollAddReadEvent(int epfd, int fd);
 int epollDelReadEvent(int epfd, int fd);
+int epollAddReadEventServer(int epfd, int fd);
+int epollMod(int epfd, int fd);
 
 int executeCommand(task_t*);
 
 //用户登录校验
 char* userLoginCheck1(const char* username);
-int  userLoginCheck2(const char* encrypt);
+int  userLoginCheck2(const char* encrypt, const char* username);
 
 int recvCommand(int peerfd, char* buf);
 

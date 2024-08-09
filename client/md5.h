@@ -28,6 +28,41 @@ void md5_to(const unsigned char *s, size_t len , unsigned char* md, char *result
 
 }
 
+void md5_file(const char *filename,  char * result){
+    
+    FILE *file = fopen(filename, "rb");
+    if(file == NULL){
+        perror("Errpr opening file ");
+        exit(1);
+    }
+    MD5_CTX context;
+
+    MD5_Init(&context);
+
+    unsigned char buffer[1024];
+
+    size_t len;
+
+    while((len = fread(buffer, 1, sizeof(buffer), file)) > 0){
+
+        MD5_Update(&context, buffer, len);
+    }
+    unsigned char md[16] = { 0 };
+
+    MD5_Final(md, &context);
+    memset(result, '\0', sizeof(result));
+    
+    for(unsigned int i =0 ;i <16 ;i++){
+        char frag[3] = {0};
+        sprintf(frag, "%02x", md[i]);
+        strcat(result, frag);
+
+    }
+   //成功完成 
+
+    fclose(file);
+}
+
 
 
 #endif

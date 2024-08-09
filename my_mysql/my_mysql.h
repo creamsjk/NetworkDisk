@@ -1,7 +1,8 @@
 #ifndef MY_MYSQL_H
 #define MY_MYSQL_H
 
-#include <func.h>
+#include<stdio.h>
+#include<string.h>
 #include <mysql/mysql.h>
 
 MYSQL* connect_db(void);
