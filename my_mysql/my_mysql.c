@@ -189,6 +189,41 @@ int update_user_pwd(MYSQL* pconn, char* username, char* new_pwd)
 }
 
 /*
+ * 查找用户目录是否存在
+ * 参数：pconn 指向MYSQL结构体的指针
+ *       username 特定的用户名
+ *       filename 需要查找的目录名
+ *       filepath 在特定路径下查找
+ * 返回值：文件名存在返回1
+ *         文件名不存在返回0
+ *         失败返回-1
+ * */
+int find_user_file_is_exist(MYSQL* pconn, char* username, char* filename, char* filepath)
+{
+    char sql[256];
+    sprintf(sql, "select filename from File where username = '%s' and filename = '%s' and filepath = '%s' and filetype = 'd';", username, filename, filepath);
+
+    if(execute_query(pconn, sql) == -1)
+        return -1;
+
+    MYSQL_RES* pres = mysql_store_result(pconn);
+    if(pres)
+    {
+        int rows = mysql_num_rows(pres);
+        mysql_free_result(pres);
+        if(rows > 0)
+            return 1;
+        else 
+            return 0;
+    }
+    else
+    {
+        perror(mysql_error(pconn));
+        return -1;
+    }
+}
+
+/*
  * 查找文件是否已经在服务器上
  * 参数：pconn 指向MYSQL结构体的指针
  *       file_hash 确定文件唯一的密文
