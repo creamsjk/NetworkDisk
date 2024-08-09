@@ -161,7 +161,8 @@ int main(int argc, char* argv[]){
 
                    printf("进入密码验证阶段!!\n"); 
                     //while(1);
-                    while(1){
+                    int enter_user = 3;
+                    while(enter_user >= 0){
 
                     
                     ret = recv(peerfd, &user, sizeof(user), 0);
@@ -171,6 +172,7 @@ int main(int argc, char* argv[]){
                     if(find_user_is_exist(pconn, user.user) != 1){     
                         send(peerfd, "error", 6, 0);
                         printf("没找到user \n");
+                        enter_user--;
                         continue;
 
                     }
@@ -183,12 +185,15 @@ int main(int argc, char* argv[]){
                     else{
                         send(peerfd, "error", 6, 0);
                         printf("密码不对!! \n");
+                        enter_user--;
 
                     }
                     }
 
                     //while(1);
-                         
+                    //
+                    if(enter_user < 0)
+                        continue;                         
                      
                     
 
