@@ -18,8 +18,10 @@
 #include <sys/stat.h>
 #include<dirent.h>
 #include"../type.h"
+#include"../my_mysql/my_mysql.h"
+#include<mysql/mysql.h>
 
-char *cmd_cd(task_t result, char *root){
+char *cmd_cd(task_t result, char *root, MYSQL *pconn){
     
     char *s = (char*)malloc(sizeof(char) * 200);
     memset(s,'\0', 200);
@@ -38,6 +40,16 @@ char *cmd_cd(task_t result, char *root){
     s[d-1]='\0';
 
    char * ff = strrchr(s, '/');
+   char dir_name[200] = { 0 };
+   char this_path[200] = { 0 };
+
+   strcpy(this_path, result.m_pwd);
+   strcpy(dir_name, ff + 1);
+   int ret = find_user_file_is_exist(pconn, result.m_user, dir_name, this_path);
+
+
+
+   
 
     //  printf("ff ==%s \n", ff + 1);
     //   *ff = '\0';
@@ -56,12 +68,16 @@ char *cmd_cd(task_t result, char *root){
    }else if(strcmp(ff + 1, ".") == 0){
 
        *ff = '\0';
+   }else if (ret != 1){
+
+       *ff = '\0';
+       
    }
 
 
 
     struct stat st;
-    int ret = stat(s, &st);
+     ret = stat(s, &st);
    
     //printf("cd_ =%sret = %d \n", s, ret);
     //如果不是就返回错误信息

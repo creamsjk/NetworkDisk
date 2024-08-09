@@ -70,7 +70,7 @@ void process(task_t task, MYSQL * pconn){
         }
     case CMD_TYPE_CD:
         {
-            char *result = cmd_cd(task, root);  
+            char *result = cmd_cd(task, root, pconn);  
            // printf("cd pwd  == %s \n", task.m_pwd);
 
             int len = strlen(result);
@@ -94,7 +94,7 @@ void process(task_t task, MYSQL * pconn){
         }
     case CMD_TYPE_RMDIR:
         {
-            int ret  = cmd_rmdir(task, root);
+            int ret  = cmd_rmdir(task, root, pconn);
 
             if(ret == 0)
                 send(task.m_peerfd, "ok", 3, 0);
@@ -138,8 +138,14 @@ void process(task_t task, MYSQL * pconn){
             printf("put_name=%s 1 user=%s \n", s, task.m_user);
             //文件名存在返回1  不存在返回0  失败返回-1
             if(ret == 1){
+
+             ret = insert_file(pconn, task.m_buff, "f", task.m_user, hash_recv, s);
+
                 send(task.m_peerfd, "exists", 7, 0);    
             }else if(ret == 0){
+
+              ret = insert_file(pconn, task.m_buff, "f", task.m_user, hash_recv, s);
+
 
              //服务器上不存在的文件发送 ok
               send(task.m_peerfd, "ok", 3, 0);
@@ -162,7 +168,9 @@ void process(task_t task, MYSQL * pconn){
             //while(1);
             //
             //数据库给用户添加一个数据
-            ret = insert_file(pconn, task.m_buff, "f", task.m_user, hash_recv, s);
+            printf("puts inset file  ret == %d \n",ret);
+           // ret = insert_file(pconn, task.m_buff, "f", task.m_user, hash_recv, s);
+            
 
             epollAddReadEvent(task.m_epfd, task.m_peerfd);
 

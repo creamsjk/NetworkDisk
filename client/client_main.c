@@ -335,6 +335,8 @@ int main(void){
                  //   printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
                     ret = recv(clientfd, buff, sizeof(buff), 0);
+                    if(ret <= 0)
+                        quit = 1;
                     
                     printf("%s \n",buff);
 
@@ -349,6 +351,8 @@ int main(void){
                    //  printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
 
                     ret = recv(clientfd, buff, sizeof(buff), 0);
+                    if(ret <= 0)
+                        quit = 1;
                     
                     printf("%s \n",buff);
 
@@ -360,7 +364,10 @@ int main(void){
                 {
                     //cd 更改客户端命令
                     cmd.m_cmd = CMD_TYPE_CD;
-                    recv(clientfd, buff, sizeof(buff), 0);
+                    ret = recv(clientfd, buff, sizeof(buff), 0);
+
+                    if(ret <= 0)
+                         quit = 1;
 
                     printf(" %s \n",buff);
 
@@ -386,7 +393,10 @@ int main(void){
             case 4:
                 {
                     cmd.m_cmd = CMD_TYPE_MKDIR;
-                    recv(clientfd, buff, sizeof(buff), 0);
+                    ret = recv(clientfd, buff, sizeof(buff), 0);
+
+                    if(ret <= 0)
+                        quit = 1;
 
                     if(strcmp(buff, "ok") == 0)
                         printf("mkdir ok \n");
@@ -400,7 +410,9 @@ int main(void){
             case 5:
                 {
                     cmd.m_cmd = CMD_TYPE_RMDIR;
-                    recv(clientfd, buff, sizeof(buff), 0);
+                    ret = recv(clientfd, buff, sizeof(buff), 0);
+                    if(ret <= 0)
+                        quit = 1;
 
                     if(strcmp(buff, "ok") == 0)
                         printf("rmdir ok \n");
@@ -417,7 +429,9 @@ int main(void){
                 {
                     cmd.m_cmd = CMD_TYPE_PUTS;
                     
-                    recv(clientfd, buff, sizeof(buff), 0);
+                    ret = recv(clientfd, buff, sizeof(buff), 0);
+                    if(ret <= 0)
+                        quit = 1;
 
                     char name[200]={ 0 };
                     strcpy(name, cmd.m_buff);
@@ -478,6 +492,7 @@ int main(void){
             case 8:
                 {
                     cmd.m_cmd = CMD_TYPE_QUIT;
+                    quit = 1;
                     break;
                 }
             default:

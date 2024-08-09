@@ -14,22 +14,31 @@
 #include<unistd.h>
 #include<string.h>
 #include"../type.h"
+#include"../my_mysql/my_mysql.h"
+#include<mysql/mysql.h>
 
 
-int  cmd_rmdir(task_t result , char* root){
+int  cmd_rmdir(task_t result , char* root, MYSQL * pconn){
 
     char *s = (char *)malloc(sizeof(char) * 200);
     int len = strlen(result.m_buff);
     result.m_buff[len -1] = '\0';
    // strcpy(s, root);
    // strcat(s, "/");
+    char this_path[200] = {0};
+    strcpy(this_path, result.m_pwd);
+    int fir_ret = delete_file(pconn, result.m_buff, result.m_user, this_path); 
     strcat(s, result.m_pwd);
     strcat(s, "/");
     strcat(s,result.m_buff);
 
     int ret = rmdir(s);
+
+
     
     free(s);
+    if(fir_ret == -1 || ret == -1)
+        ret = -1;
     return ret;
 
 }
