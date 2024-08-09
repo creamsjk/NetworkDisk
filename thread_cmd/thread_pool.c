@@ -24,10 +24,11 @@
 #include"gets.h"
 #include"puts.h"
 #include"../server/server.h"
+#include"../my_mysql/my_mysql.h"
 
 char * root = "/home/sunrise/桌面/wangdao/NetworkDisk";
 
-void process(task_t task){
+void process(task_t task, MYSQL * pconn){
 
     // printf("%ld执行任务  over\n",pthread_self());
    // printf("process_pwd == %s \n", task.m_pwd);
@@ -107,21 +108,57 @@ void process(task_t task){
             printf("puts join \n");
 
             send(task.m_peerfd, "ok", 3, 0);
+
+
             epollDelReadEvent(task.m_epfd, task.m_peerfd);
+
+            char hash_recv[33] = { 0 };
+            recv(task.m_peerfd, hash_recv, sizeof(hash_recv), 0);
+
+            printf("recv_hash is  %s \n", hash_recv);
+
+            //查找文件是否在服务器上
+            int ret =  find_file_is_exist( pconn, hash_recv);
+
+            //while(1);
+               
+
             char *s = (char *)malloc(sizeof(char) * 200);
             int len = strlen(task.m_buff);
             task.m_buff[len -1] = '\0';
             // strcpy(s, root);
             // strcat(s, "/");
+             
             strcat(s, task.m_pwd);
+            s = strpbrk(s, "/"); 
+
             strcat(s, "/");
             strcat(s,task.m_buff);
 
-            printf("put_name=%s 1\n", s);
+            printf("put_name=%s 1 user=%s \n", s, task.m_user);
+            //文件名存在返回1  不存在返回0  失败返回-1
+            if(ret == 1){
+                send(task.m_peerfd, "exists", 7, 0);    
+            }else if(ret == 0){
+
+             //服务器上不存在的文件发送 ok
+              send(task.m_peerfd, "ok", 3, 0);
+              cmd_puts(task, s);
+              //添加服务器上没有的文件  暂时没有设置文件大小 统一设置成100
+              ret = insert_global_file(pconn, hash_recv, s, 100);
+              
+                
+            }else{
+
+                printf("数据库查找失败!! \n");
+            }
+            
+
             //strcpy(s, "/home/sunrise/桌面/wangdao/NetworkDisk/home/abc.txt");
             //while(1);
-            cmd_puts(task, s);
-            //while(1);
+            //
+            //数据库给用户添加一个数据
+            ret = insert_file(pconn, task.m_buff, "f", task.m_user, hash_recv, s);
 
             epollAddReadEvent(task.m_epfd, task.m_peerfd);
 
@@ -167,6 +204,9 @@ void *work(void* arg){
     // printf("work .......\n");
     threadpool_t *pool = (threadpool_t* )arg;
 
+    //创建一个属于自己的数据库连接
+   MYSQL *pcoon = connect_db(); 
+
     while(1){
        task_t  tmp;
        //从阻塞队列拿出来以一个
@@ -175,7 +215,7 @@ void *work(void* arg){
        assert(ret == 0);
         int peerfd = tmp.m_peerfd;
        if(peerfd > 0){
-         process(tmp);
+         process(tmp, pcoon);
 
        }else{
            break;
@@ -183,6 +223,9 @@ void *work(void* arg){
 
     }
     printf("sub thread %ld is exiting. \n",pthread_self());
+
+    //关闭数据库连接
+    close_db(pcoon);
     return NULL;
 
 

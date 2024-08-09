@@ -34,6 +34,8 @@ typedef enum cmd_t{
      char m_buff[200];
      //客户端的工作目录
      char m_pwd[200];
+     //要处理的用户
+     char m_user[20];
 
 }task_t;
 
@@ -88,6 +90,13 @@ typedef  struct user_s{
    char pwd[128];
 
 }user_t;
+
+//文件描述符与username对应关系
+typedef struct fd_username{
+    int  user_fd;
+    char username[20];
+
+}fd_list;
 
 
 

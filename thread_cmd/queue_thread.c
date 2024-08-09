@@ -95,6 +95,7 @@ int taskEnque(list_queue_t *que, const task_t result){
     node->m_task.m_epfd = result.m_epfd;
     strncpy(node->m_task.m_buff,result.m_buff,sizeof(node->m_task.m_buff));
     strncpy(node->m_task.m_pwd, result.m_pwd, sizeof(result.m_pwd));
+    strncpy(node->m_task.m_user, result.m_user, sizeof(node->m_task.m_user));
     
     node->m_task.m_cmd = result.m_cmd;
 

@@ -425,10 +425,31 @@ int main(void){
                     name[name_len -1] = '\0';
 
                     printf("puts_name =%s \n", name);
+
+                    char hash_send[33] ={ 0 };
+                    md5_file(name, result); 
+                    printf("result = %s \n", result);
+
                     //while(1);
+                    strcpy(hash_send, result); 
+                    
+                    printf("hash_send =%s \n", hash_send);
+                    
+                    send(newfd, hash_send, sizeof(hash_send), 0);
+
+
+                    char puts_message[10] = { 0 };
+                    recv(newfd, puts_message, sizeof(puts_message), 0);
+                    //while(1);
+
+                  if(strcmp(puts_message, "ok") == 0) 
                     cmd_puts(newfd, name);
+
                    // while(1);
-                   //
+                   
+                  printf("puts 完成 \n");
+                   
+                   
                     printf("\033[0m\033[1;32m%s@ubuntu\033[0m:\033[0m\033[1;34m%s\033[0m$  ", client.user, pwd);
                     
                     break;

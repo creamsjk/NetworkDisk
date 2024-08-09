@@ -253,7 +253,7 @@ int cmd_puts(int peerfd, char *path_name){
 
         send_bit += ret;
     }
-    printf("puts 完成!!\n");
+    //printf("puts 完成!!\n");
 
     return 0;
 }

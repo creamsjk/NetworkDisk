@@ -3,14 +3,14 @@
 #include"../thread_cmd/thread_pool.h"
 #include"../my_mysql/my_mysql.h"
 #define MAXSIZE 1024
+#define MAXUSER
 
 //编译命令  
 //gcc main.c server.c  ../thread_cmd/thread_pool.c  ../thread_cmd/queue_thread.c ../my_mysql/my_mysql.c   -o server -pthread -w -lmysqlclient
 
 
 
-
-
+fd_list  users[MAXUSER] = { 0 };
 
 int exitPipe[2] = { 0 };
 //保存当前与服务器建立连接用户信息
@@ -40,6 +40,7 @@ int main(int argc, char* argv[]){
      //数据库连接
     MYSQL *pconn = connect_db(); 
 
+    //初始化文件描述符与名字队列
      
 
      //连接队列
@@ -129,13 +130,26 @@ int main(int argc, char* argv[]){
                     }else if (select_login_register == 2){
                         //执行注册
                         ret = recv(peerfd, &user, sizeof(user), 0);
-                        ret = insert_user(pconn, user.user,  user.password, "/home/sunrise/桌面/wangdao/NetworkDisk/home");
+
+                          char *this_path = getcwd(NULL, 0);
+                          char pwd[128] = { 0 };
+                          strcpy(pwd, this_path);
+                          free(this_path);
+                          
+                          this_path = strrchr(pwd, '/');
+                          *this_path = '\0';
+                          strcat(pwd, "/home");
+                          printf("pwd == %s \n", pwd);
+                          
+                          
+                        ret = insert_user(pconn, user.user,  user.password, pwd);
                         if(ret == -1){
                           send(peerfd, "error", 6, 0);
                           continue;
                         }
                         else 
                           send(peerfd, "ok", 3, 0);  
+
 
                     }
             
@@ -188,12 +202,22 @@ int main(int argc, char* argv[]){
                     sprintf(message, "fd: %d   ip:%s   port:%d   connect", peerfd,  inet_ntoa(clientAdd.sin_addr), ntohs(clientAdd.sin_port));
                     //printf("message == %s \n",message);
                     write_log(log, message);
+                    
+                    //将对应的文件描述符加入users 并改变username
+                    users[peerfd].user_fd = peerfd;
+                    strcpy(users[peerfd].username, user.user);
+                    printf("user == %s \n",user.user);
+
+
 
                     //添加用户队列  用数组 实现吧 -1 代表就是可以使用的数组
                     client_t* pClient = (client_t*)calloc(1, sizeof(client_t));
                     pClient->m_peerfd = peerfd;
                     strcpy(pClient->m_ip, inet_ntoa(clientAdd.sin_addr));
                     sprintf(pClient->m_port, "%d", ntohs(clientAdd.sin_port));
+
+                    
+                    
                     strcpy(pClient->m_pwd, "/home/sunrise/桌面/wangdao/NetworkDisk/home");
                 
 
@@ -277,6 +301,10 @@ int main(int argc, char* argv[]){
                      clientList.clientSize--;
                      epollDelReadEvent(epfd, fd);
                      close(fd);
+
+                     //从users 中删除
+                     users[fd].user_fd = -1;
+                     memset(users[fd].username, '\0', sizeof(users[fd].username));
                      
                     // printf("clientList.clientSize == %d \n", clientList.clientSize);
                     // 测试通过没有什么问题
@@ -301,6 +329,8 @@ int main(int argc, char* argv[]){
                     //task.m_cmd = (cmd_type)recvCommand(fd, task.m_buff);
                     task.m_cmd = client_message.m_cmd;
                     strcpy(task.m_buff, client_message.m_buff); 
+                    strcpy(task.m_user, users[task.m_peerfd].username);
+
 
                     //暂时将本项目下 /home  作为所有客户端的家目录
                     strcpy(task.m_pwd, "/home/sunrise/桌面/wangdao/NetworkDisk");
@@ -310,7 +340,7 @@ int main(int argc, char* argv[]){
                     //加入阻塞队列
                     taskEnque(pool->m_que, task);
 
-                    printf("fd = %d  cmd == %d  m_buff = %s  m_pwd = %s  \n", task.m_peerfd, task.m_cmd, task.m_buff, task.m_pwd );
+                    printf("fd = %d  cmd == %d  m_buff = %s  m_pwd = %s  m_user = %s \n", task.m_peerfd, task.m_cmd, task.m_buff, task.m_pwd, task.m_user );
                     //printf("成功加入阻塞队列 \n");
                     //executeCommnd();
                 }
