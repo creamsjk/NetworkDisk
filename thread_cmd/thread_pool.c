@@ -58,7 +58,7 @@ void process(task_t task, MYSQL * pconn){
         {
             //后边和客户端处理
             printf("work_ls_pwd == %s \n",task.m_pwd);
-            char * result = cmd_ls(task, root);
+            char * result = cmd_ls(task, root, pconn);
             int len = strlen(result);
             result[len] = '\0';
             send(task.m_peerfd, result, len + 1, 0);
@@ -84,7 +84,7 @@ void process(task_t task, MYSQL * pconn){
     case CMD_TYPE_MKDIR:
         {
 
-             int ret  = cmd_mkdir(task, root);
+             int ret  = cmd_mkdir(task, root, pconn);
              if(ret == 0)
                 send(task.m_peerfd, "ok", 3, 0);
              else
@@ -132,8 +132,8 @@ void process(task_t task, MYSQL * pconn){
             strcat(s, task.m_pwd);
             s = strpbrk(s, "/"); 
 
-            strcat(s, "/");
-            strcat(s,task.m_buff);
+           // strcat(s, "/");
+           // strcat(s,task.m_buff);
 
             printf("put_name=%s 1 user=%s \n", s, task.m_user);
             //文件名存在返回1  不存在返回0  失败返回-1
@@ -145,7 +145,11 @@ void process(task_t task, MYSQL * pconn){
               send(task.m_peerfd, "ok", 3, 0);
               cmd_puts(task, s);
               //添加服务器上没有的文件  暂时没有设置文件大小 统一设置成100
-              ret = insert_global_file(pconn, hash_recv, s, 100);
+              char global_file[200] = { 0 };
+              strcpy(global_file, s);
+              strcat(global_file, "/");
+              strcat(global_file, task.m_buff);
+              ret = insert_global_file(pconn, hash_recv, global_file , 100);
               
                 
             }else{
