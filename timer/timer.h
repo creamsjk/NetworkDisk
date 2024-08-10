@@ -24,7 +24,7 @@ typedef  struct tin_s{
     my_time_t * solt;
 }my_timer;
 
-//删除time 指向的为 fd 的定时器
+//删除time 指向的为 fd 的定时器 time 不为空
 void delete_timer(int fd, my_time_t * time){
 
     //能进入这里 就代表fd 一定存在这里面
@@ -32,12 +32,15 @@ void delete_timer(int fd, my_time_t * time){
     my_time_t * pCur = time->pNext;
     my_time_t * pPre = time;
 
-    while(pCur != NULL){
+    while(pCur != NULL || time == NULL){
 
         if(pCur->fd == fd){
         
             pPre->pNext = pCur->pNext;
+            pCur->fd = -1;
             free(pCur);
+
+            printf(" 删除%d成功 \n", fd);
             break;
             
         }
@@ -45,6 +48,7 @@ void delete_timer(int fd, my_time_t * time){
         pCur = pCur->pNext;
 
     } 
+
 
 }
 
@@ -62,20 +66,33 @@ void  add_timer(int fd, my_time_t *time){
    p->pNext = node;
    node->pNext = NULL;
 
+   printf("添加fd=%d \n",node->fd);
+
+}
+
+void show_timer(my_time_t * time){
+
+    my_time_t * p = time->pNext;
+
+    while( p != NULL){
+
+        printf("fd is %d \n",p->fd);
+        p = p->pNext;
+    }
+        
 }
 
 //返回一个fd 知道time->pNext为NULL return -1 表示这个槽取完了 结束
 int take_timer(my_time_t *time){
-    if(time->pNext != NULL){
-        
-       int result = time->pNext->fd;
-       my_time_t * p = time->pNext;
-       time->pNext = p ->pNext;
-       free(p);
-       return result;
-    }
 
-    return -1;
+    
+    if(time == NULL || time->pNext == NULL)
+        return -1;
+
+    my_time_t * p = time->pNext;
+    time->pNext = p->pNext;
+
+    return p->fd;
 }
 
 

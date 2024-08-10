@@ -4,6 +4,7 @@
 #include"../my_mysql/my_mysql.h"
 #include"../timer/hashtable.h"
 #include"../timer/timer.h"
+#include <unordered_map>
 
 #define MAXSIZE 1024
 #define MAXUSER  1024
@@ -108,7 +109,12 @@ int main(int argc, char* argv[]){
        HashTable hashlist;
        HashTable * ht = &hashlist;
        initHashTable(ht);
-      // printf("哈希表初始化完成");
+
+       std::unordered_map<int,int> hs;
+       
+
+       printf("哈希表初始化完成");
+       printHashTable(ht);
        my_timer  timer[MAXTIME];
        for(int i=0; i < MAXTIME ;i++){
   
@@ -385,43 +391,52 @@ int main(int argc, char* argv[]){
                 tmp_time = time_point - 1;
             }
 
-           // printf("定时器处理fd \n");
-            //开始处理那些fd
-            for(int i=0; i < ready_num; i++){
-                 
-                int fd = events[i].data.fd;
-                //从原本位置取出来
-                char * c = (char *)malloc( 4);
-                sprintf(c, "%d", fd);
-                void * index_slot = find(ht, c);
-               // printf("find hash success \n");
-                int index =(long ) index_slot;
+           
+            for(int i=0 ;i< ready_num; i++){
+                
+                int fd  = events[i].data.fd;
+                if(fd == listenfd || fd <= 2)
+                    continue;
+               if(hs.find(fd) != hs.end()){
 
-               // printf("开始delete_timer \n");
-                //从原本的槽里面取出来
-                delete_timer(fd, timer[index].solt);
-               // printf("delete_timer 成功\n");
-                //更新位置
-                insert(ht, c , (void *)tmp_time);
-                //在新位置添加节点
-                add_timer(fd,timer[tmp_time].solt);
-               // printf("add_timer 成功\n");
-               free(c);
+
+                  int s = hs[fd];
+                  //s就是槽的位置
+                  
+                  delete_timer(fd, timer[s].solt);
+
+               }
+
+               hs[fd] = tmp_time;
+               add_timer(fd, timer[tmp_time].solt);
 
             }
+
            // printf("处理fd结束 \n");
             //现在这个槽里面剩下的都是需要断开的连接
+            
+            //看看所有槽的内容
+          //  for(int l=0;l<MAXTIME ;l++){
+
+          //      printf("目前show的槽是%d \n",l);
+          //      show_timer(timer[l].solt);
+          //  }
+
+            printf("end \n");
              
               int close_time = 0;
-              while(timer[time_point].solt->pNext != NULL){
-                  close_time = take_timer(timer[time_point].solt);
-                  if(close_time == listenfd)
-                      break;
+              
+              show_timer(timer[time_point].solt);
 
-                  //关闭响应文件描述 即断开连接
+          //    printf("time_point is %d \n",time_point);
+              while(timer[time_point].solt->pNext != NULL){
+                  printf("目前删除的槽是%d \n",time_point);
+                  int close_time = take_timer(timer[time_point].solt);
+                  printf("删除fd is%d \n",close_time);
+                  epollDelReadEvent(epfd, close_time);
                   close(close_time);
-                  printf("结束一个fd  %d \n", close_time);
-              }
+
+                }
               //轮询指针 指向下一个位置
               time_point++;
               time_point %= MAXTIME;

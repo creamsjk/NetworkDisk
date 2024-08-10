@@ -46,7 +46,7 @@ char * cmd_ls(task_t result, char *root, MYSQL * pconn){
      
    //printf("%s \n", message);
    
-   //查询目录文件 但是不传出去
+   //查询目录文件 
    
     sql_result = NULL;
     sql_result = get_user_dir_by_path(pconn, result.m_user, s);
