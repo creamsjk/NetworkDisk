@@ -40,7 +40,6 @@ void delete_timer(int fd, my_time_t * time){
             pCur->fd = -1;
             free(pCur);
 
-            printf(" 删除%d成功 \n", fd);
             break;
             
         }
@@ -66,7 +65,6 @@ void  add_timer(int fd, my_time_t *time){
    p->pNext = node;
    node->pNext = NULL;
 
-   printf("添加fd=%d \n",node->fd);
 
 }
 
@@ -76,7 +74,6 @@ void show_timer(my_time_t * time){
 
     while( p != NULL){
 
-        printf("fd is %d \n",p->fd);
         p = p->pNext;
     }
         

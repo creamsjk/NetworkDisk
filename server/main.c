@@ -100,21 +100,13 @@ int main(int argc, char* argv[]){
         //启动线程池
         threadpoolStart(pool);
 
-       // printf("进入epoll  \n");
-       // printf("epfd == %d \n",epfd);
        
 
-      //  printf("开始定时器初始化 \n");
        //初始化定时器相关内容 定时器10s触发
-       HashTable hashlist;
-       HashTable * ht = &hashlist;
-       initHashTable(ht);
 
        std::unordered_map<int,int> hs;
        
 
-       printf("哈希表初始化完成");
-       printHashTable(ht);
        my_timer  timer[MAXTIME];
        for(int i=0; i < MAXTIME ;i++){
   
@@ -123,7 +115,6 @@ int main(int argc, char* argv[]){
          timer[i].solt->pNext = NULL;
        }
          int time_point = 0;     
-       //  printf("结束定时器初始化 \n");
        
 
         while(1) {
@@ -188,8 +179,7 @@ int main(int argc, char* argv[]){
 
 
 
-                   printf("进入密码验证阶段!!\n"); 
-                    //while(1);
+                   //printf("进入密码验证阶段!!\n"); 
                     int enter_user = 3;
                     while(enter_user >= 0){
 
@@ -219,8 +209,6 @@ int main(int argc, char* argv[]){
                     }
                     }
 
-                    //while(1);
-                    //
                     if(enter_user < 0)
                         continue;                         
                      
@@ -341,7 +329,6 @@ int main(int argc, char* argv[]){
                      memset(users[fd].username, '\0', sizeof(users[fd].username));
                      
                     // printf("clientList.clientSize == %d \n", clientList.clientSize);
-                    // 测试通过没有什么问题
                 
                 }else {
                     //子进程接收到客户端指令，执行指令  
@@ -412,27 +399,13 @@ int main(int argc, char* argv[]){
 
             }
 
-           // printf("处理fd结束 \n");
-            //现在这个槽里面剩下的都是需要断开的连接
-            
-            //看看所有槽的内容
-          //  for(int l=0;l<MAXTIME ;l++){
-
-          //      printf("目前show的槽是%d \n",l);
-          //      show_timer(timer[l].solt);
-          //  }
-
-            printf("end \n");
              
-              int close_time = 0;
               
-              show_timer(timer[time_point].solt);
 
-          //    printf("time_point is %d \n",time_point);
               while(timer[time_point].solt->pNext != NULL){
-                  printf("目前删除的槽是%d \n",time_point);
+                   //printf("目前删除的槽是%d \n",time_point);
                   int close_time = take_timer(timer[time_point].solt);
-                  printf("删除fd is%d \n",close_time);
+                 // printf("删除fd is%d \n",close_time);
                   epollDelReadEvent(epfd, close_time);
                   close(close_time);
 

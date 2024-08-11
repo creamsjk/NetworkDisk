@@ -30,8 +30,6 @@ char * root = "/home/sunrise/桌面/wangdao/NetworkDisk";
 
 void process(task_t task, MYSQL * pconn){
 
-    // printf("%ld执行任务  over\n",pthread_self());
-   // printf("process_pwd == %s \n", task.m_pwd);
     switch(task.m_cmd){
     case CMD_TYPE_PWD:
         {
@@ -44,27 +42,17 @@ void process(task_t task, MYSQL * pconn){
             result[len] = '\0';
             send(task.m_peerfd, result, len + 1, 0);
             
-            //printf("pwd buff is  %s \n",result);
-            //while(1);
-            //free(result);
-            //
-            //epollMod(task.m_epfd, task.m_peerfd);
                           
-            //printf("pwd_epfd == %d \n",task.m_epfd);
             break;
 
         }
     case CMD_TYPE_LS:
         {
             //后边和客户端处理
-            printf("work_ls_pwd == %s \n",task.m_pwd);
             char * result = cmd_ls(task, root, pconn);
             int len = strlen(result);
             result[len] = '\0';
             send(task.m_peerfd, result, len + 1, 0);
-
-            //printf("pwd buff is  %s \n",result);
-
 
             break;
         }
@@ -164,12 +152,8 @@ void process(task_t task, MYSQL * pconn){
             }
             
 
-            //strcpy(s, "/home/sunrise/桌面/wangdao/NetworkDisk/home/abc.txt");
-            //while(1);
-            //
             //数据库给用户添加一个数据
             printf("puts inset file  ret == %d \n",ret);
-           // ret = insert_file(pconn, task.m_buff, "f", task.m_user, hash_recv, s);
             
 
             epollAddReadEvent(task.m_epfd, task.m_peerfd);
@@ -213,7 +197,6 @@ void process(task_t task, MYSQL * pconn){
 
 
 void *work(void* arg){
-    // printf("work .......\n");
     threadpool_t *pool = (threadpool_t* )arg;
 
     //创建一个属于自己的数据库连接
