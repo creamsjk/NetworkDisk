@@ -24,6 +24,11 @@ int main(void){
     //创建客户端的套接字
     int clientfd = socket(AF_INET, SOCK_STREAM, 0);
 
+
+    //设置端口复用
+        int on = 1;
+        int gg = setsockopt(clientfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+
     struct sockaddr_in serveraddr;
     memset(&serveraddr, 0, sizeof(serveraddr));
     //指定使用的是IPv4的地址类型 AF_INET
@@ -32,8 +37,8 @@ int main(void){
     serveraddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
     //连接服务器
-    int ret = connect(clientfd, (struct sockaddr*)&serveraddr,
-                      sizeof(serveraddr));
+   // int ret = connect(clientfd, (struct sockaddr*)&serveraddr,
+   //                   sizeof(serveraddr));
 
      
     
@@ -56,9 +61,10 @@ int main(void){
     printf("Enter 1 is login \n");
     printf("Enter 2 is register \n");
     scanf("%d", &select_login_register);
+   client.flag = select_login_register;
 
     //printf("select_login_register ==%d| \n", select_login_register);
-    send(clientfd, &select_login_register, sizeof(int), 0);
+    //send(clientfd, &select_login_register, sizeof(int), 0);
 
     if(select_login_register != 1 &&  select_login_register != 2){
         
@@ -67,8 +73,11 @@ int main(void){
     }
 
 
+
+    int ret = 0;
     //注册
     if(select_login_register == 2){
+
 
         printf("Please inter your register  user: ");
         scanf("%s",client.user);
@@ -83,6 +92,8 @@ int main(void){
               return 1;
          
         }
+     ret = connect(clientfd, (struct sockaddr*)&serveraddr,
+                      sizeof(serveraddr));
 
         strcpy(result, password);
         md5_to((unsigned char *)password, sizeof(password), md, result);
@@ -104,11 +115,19 @@ int main(void){
         printf("register is success \n");
 
     }
+    memset(&client, 0, sizeof(client));
 
    //while(1); 
    printf("进入输入密码阶段!!\n");
 
-    while(strcmp(log_in_message, "ok") != 0){
+   recv_len = -1;
+   memset(log_in_message, '\0', 16);
+
+    while(strcmp(log_in_message, "ok") != 0 ){
+        
+
+        //改变flag
+        client.flag = 1;
 
         if(recv_len >= 0 ){
 
@@ -130,6 +149,10 @@ int main(void){
               return 1;
          
         }
+        printf("准备连接!!\n");
+     connect(clientfd, (struct sockaddr*)&serveraddr,
+                      sizeof(serveraddr));
+
 
         strcpy(result, password);
         md5_to((unsigned char *)password, sizeof(password), md, result);
@@ -141,6 +164,8 @@ int main(void){
 
         recv_len = recv(clientfd,  log_in_message, sizeof(log_in_message), 0);
     }
+
+    //正式进入服务器
 
     printf("\033[0m\033[1;31m Enter Server  \033[0m\n");
 
@@ -154,6 +179,8 @@ int main(void){
 
      //初始目录
      strcpy(cmd.m_pwd, "/home");
+
+     printf("cmd == %d \n",cmd.m_cmd);
      
 
      char buff[10240];

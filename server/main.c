@@ -141,16 +141,62 @@ int main(int argc, char* argv[]){
                     user_t user;
                     memset(&user, '\0', sizeof(user));
 
-                    int select_login_register = 0;
-                      
-                    recv(peerfd, &select_login_register, sizeof(select_login_register), 0);
+                  //  int select_login_register = 0;
+                  //    
+                  //  recv(peerfd, &select_login_register, sizeof(select_login_register), 0);
 
-                    if(select_login_register != 2 &&  select_login_register != 1){
+                  //  if(select_login_register != 2 &&  select_login_register != 1){
+                  //      continue;
+                  //  }else if (select_login_register == 2){
+                  //      //执行注册
+                  //      ret = recv(peerfd, &user, sizeof(user), 0);
+
+                  //        char *this_path = getcwd(null, 0);
+                  //        char pwd[128] = { 0 };
+                  //        strcpy(pwd, this_path);
+                  //        free(this_path);
+                  //        
+                  //        this_path = strrchr(pwd, '/');
+                  //        *this_path = '\0';
+                  //        strcat(pwd, "/home");
+                  //        printf("pwd == %s \n", pwd);
+                  //        
+                  //        
+                  //      ret = insert_user(pconn, user.user,  user.password, pwd);
+                  //      if(ret == -1){
+                  //        send(peerfd, "error", 6, 0);
+                  //        continue;
+                  //      }
+                  //      else 
+                  //        send(peerfd, "ok", 3, 0);  
+
+
+                  //  }
+            
+
+
+
+
+
+
+                   //printf("进入密码验证阶段!!\n"); 
+                    int enter_user = 3;
+                  //  while(enter_user >= 0){
+
+                    //接受客户端传来的消息  flag==2是注册  1  是登陆 
+                    ret = recv(peerfd, &user, sizeof(user), 0);
+                    //printf("ret == %d \n",ret);
+
+                    printf("user =%s|   password =%s|  flage=%d \n",user.user, user.password, user.flag);
+                    if(find_user_is_exist(pconn, user.user) != 1 && user.flag == 1 ){     
+                        send(peerfd, "error", 6, 0);
+                        printf("没找到user \n");
+                        enter_user--;
                         continue;
-                    }else if (select_login_register == 2){
-                        //执行注册
-                        ret = recv(peerfd, &user, sizeof(user), 0);
 
+                    }else if (user.flag == 2){
+
+                          //注册的话
                           char *this_path = getcwd(NULL, 0);
                           char pwd[128] = { 0 };
                           strcpy(pwd, this_path);
@@ -172,45 +218,28 @@ int main(int argc, char* argv[]){
 
 
                     }
-            
-
-
-
-
-
-
-                   //printf("进入密码验证阶段!!\n"); 
-                    int enter_user = 3;
-                    while(enter_user >= 0){
-
                     
-                    ret = recv(peerfd, &user, sizeof(user), 0);
-                    //printf("ret == %d \n",ret);
 
-                    printf("user =%s|   password =%s|  \n",user.user, user.password);
-                    if(find_user_is_exist(pconn, user.user) != 1){     
-                        send(peerfd, "error", 6, 0);
-                        printf("没找到user \n");
-                        enter_user--;
-                        continue;
+                    if(user.flag == 2)
+                      recv(peerfd, &user, sizeof(user), 0);
 
-                    }
                     char * usr_pasword =  get_user_password(pconn, user.user);
                     printf("user_password %s \n ",usr_pasword);
                     if(strcmp(usr_pasword, user.password) == 0)  {
                        send(peerfd, "ok", 3, 0);
-                       break;
+                      // break;
                     }
                     else{
                         send(peerfd, "error", 6, 0);
                         printf("密码不对!! \n");
                         enter_user--;
+                        continue;
 
                     }
-                    }
+                  //  }
 
-                    if(enter_user < 0)
-                        continue;                         
+                    //if(enter_user < 0)
+                    //    continue;                         
                      
                     
 
@@ -274,6 +303,7 @@ int main(int argc, char* argv[]){
                 }else if(events[i].events & EPOLLRDHUP){
                      //事件发生 就是客户端关闭 从epoll中将他删除
                      //当然 还要从队列中删除 这个文件描述符  目前没有写
+                     //从定时器中也要删除
                      
                     char message[MAXSIZE] = { 0 };
 
@@ -319,9 +349,23 @@ int main(int argc, char* argv[]){
                    // printf("message == %s \n",message);
                     write_log(log, message);
                      
+                    //从槽中删除 断开连接诶的定时器
+                    if(fd == listenfd || fd <= 2)
+                        continue;
+                    if(hs.find(fd) != hs.end()){
+
+
+                        int s = hs[fd];
+                        //s就是槽的位置
+
+                        delete_timer(fd, timer[s].solt);
+
+                    }
+
                      
                      clientList.clientSize--;
                      epollDelReadEvent(epfd, fd);
+                     //printf("367 epoll \n");
                      close(fd);
 
                      //从users 中删除
@@ -406,7 +450,8 @@ int main(int argc, char* argv[]){
                    //printf("目前删除的槽是%d \n",time_point);
                   int close_time = take_timer(timer[time_point].solt);
                  // printf("删除fd is%d \n",close_time);
-                  epollDelReadEvent(epfd, close_time);
+                  //epollDelReadEvent(epfd, close_time);
+                  //printf("451 epoll \n");
                   close(close_time);
 
                 }
